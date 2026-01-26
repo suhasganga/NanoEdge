@@ -1,0 +1,215 @@
+/**
+ * Order book visualization for HFT Platform.
+ */
+
+class OrderbookManager {
+    constructor() {
+        this.bidsContainer = document.getElementById('bids-container');
+        this.asksContainer = document.getElementById('asks-container');
+        this.spreadValue = document.getElementById('spread-value');
+        this.spreadPercent = document.getElementById('spread-percent');
+        this.tickerPrice = document.getElementById('ticker-price');
+        this.tickerChange = document.getElementById('ticker-change');
+        this.statusIndicator = document.getElementById('depth-status');
+
+        this.symbol = null;
+        this.ws = null;
+        this.reconnectTimeout = null;
+        this.levels = 15; // Number of levels to display
+        this.lastPrice = null;
+        this.prevPrice = null;
+        this.connectionId = 0;
+    }
+
+    switchSymbol(symbol) {
+        // Close existing WebSocket FIRST to prevent race conditions
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
+
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
+
+        // Clear displays immediately to prevent showing stale data
+        this.bidsContainer.innerHTML = '';
+        this.asksContainer.innerHTML = '';
+        this.spreadValue.textContent = '--';
+        this.spreadPercent.textContent = '';
+        this.tickerPrice.textContent = '--';
+        this.tickerChange.textContent = '';
+        this.tickerChange.className = 'change';
+
+        // Now update state
+        this.symbol = symbol;
+        this.lastPrice = null;
+        this.prevPrice = null;
+
+        this._connect();
+    }
+
+    _connect() {
+        // Increment connection ID to invalidate stale handlers
+        this.connectionId++;
+        const currentConnectionId = this.connectionId;
+        const currentSymbol = this.symbol;
+
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/depth/${this.symbol}`;
+
+        this.ws = new WebSocket(wsUrl);
+
+        this.ws.onopen = () => {
+            console.log(`Depth WebSocket connected: ${this.symbol}`);
+            if (this.statusIndicator) {
+                this.statusIndicator.classList.add('connected');
+            }
+        };
+
+        this.ws.onmessage = (event) => {
+            // CRITICAL: Validate this is still the active connection
+            if (currentConnectionId !== this.connectionId) {
+                console.log(`Ignoring stale depth message (connection ${currentConnectionId}, current ${this.connectionId})`);
+                return;
+            }
+
+            try {
+                const msg = JSON.parse(event.data);
+                // CRITICAL: Also validate symbol matches
+                if (msg.type === 'depth' && msg.symbol === this.symbol) {
+                    this._render(msg.bids, msg.asks);
+                } else if (msg.type === 'depth' && msg.symbol !== this.symbol) {
+                    console.log(`Ignoring depth for wrong symbol: ${msg.symbol} (expected ${this.symbol})`);
+                }
+            } catch (e) {
+                console.error('Error processing depth message:', e);
+            }
+        };
+
+        this.ws.onclose = () => {
+            // Only reconnect if this is still the active connection
+            if (currentConnectionId !== this.connectionId) {
+                return;
+            }
+            console.log('Depth WebSocket disconnected');
+            if (this.statusIndicator) {
+                this.statusIndicator.classList.remove('connected');
+            }
+
+            this.reconnectTimeout = setTimeout(() => {
+                if (this.symbol && currentConnectionId === this.connectionId) {
+                    this._connect();
+                }
+            }, 3000);
+        };
+
+        this.ws.onerror = (e) => {
+            console.error('Depth WebSocket error:', e);
+        };
+    }
+
+    _render(bids, asks) {
+        // Get top levels
+        const topAsks = asks.slice(0, this.levels);
+        const topBids = bids.slice(0, this.levels);
+
+        // Find max size for bar width calculation
+        const allSizes = [...topAsks, ...topBids].map(([_, size]) => parseFloat(size));
+        const maxSize = Math.max(...allSizes, 0.0001);
+
+        // Render asks (lowest at bottom, so we reverse for display)
+        this.asksContainer.innerHTML = topAsks.map(([price, size]) => {
+            const priceNum = parseFloat(price);
+            const sizeNum = parseFloat(size);
+            const barWidth = (sizeNum / maxSize) * 100;
+
+            return `
+                <div class="orderbook-row ask" style="background: linear-gradient(to left, rgba(239, 83, 80, 0.2) ${barWidth}%, transparent ${barWidth}%);">
+                    <span class="price">${this._formatPrice(priceNum)}</span>
+                    <span class="size">${this._formatSize(sizeNum)}</span>
+                </div>
+            `;
+        }).join('');
+
+        // Render bids
+        this.bidsContainer.innerHTML = topBids.map(([price, size]) => {
+            const priceNum = parseFloat(price);
+            const sizeNum = parseFloat(size);
+            const barWidth = (sizeNum / maxSize) * 100;
+
+            return `
+                <div class="orderbook-row bid" style="background: linear-gradient(to left, rgba(38, 166, 154, 0.2) ${barWidth}%, transparent ${barWidth}%);">
+                    <span class="price">${this._formatPrice(priceNum)}</span>
+                    <span class="size">${this._formatSize(sizeNum)}</span>
+                </div>
+            `;
+        }).join('');
+
+        // Calculate and display spread
+        if (asks.length > 0 && bids.length > 0) {
+            const bestAsk = parseFloat(asks[0][0]);
+            const bestBid = parseFloat(bids[0][0]);
+            const spread = bestAsk - bestBid;
+            const spreadPct = ((spread / bestBid) * 100);
+
+            this.spreadValue.textContent = this._formatPrice(spread);
+            this.spreadPercent.textContent = `(${spreadPct.toFixed(4)}%)`;
+
+            // Update ticker price (mid price)
+            const midPrice = (bestAsk + bestBid) / 2;
+            this._updateTicker(midPrice);
+        }
+    }
+
+    _updateTicker(price) {
+        this.prevPrice = this.lastPrice;
+        this.lastPrice = price;
+
+        this.tickerPrice.textContent = this._formatPrice(price);
+
+        if (this.prevPrice !== null) {
+            const change = price - this.prevPrice;
+            const changePct = (change / this.prevPrice) * 100;
+
+            if (change >= 0) {
+                this.tickerChange.textContent = `+${this._formatPrice(change)} (+${changePct.toFixed(4)}%)`;
+                this.tickerChange.className = 'change positive';
+            } else {
+                this.tickerChange.textContent = `${this._formatPrice(change)} (${changePct.toFixed(4)}%)`;
+                this.tickerChange.className = 'change negative';
+            }
+        }
+    }
+
+    _formatPrice(price) {
+        // Format based on price magnitude
+        if (price >= 1000) {
+            return price.toFixed(2);
+        } else if (price >= 1) {
+            return price.toFixed(4);
+        } else {
+            return price.toFixed(6);
+        }
+    }
+
+    _formatSize(size) {
+        if (size >= 1000) {
+            return (size / 1000).toFixed(2) + 'K';
+        } else if (size >= 1) {
+            return size.toFixed(4);
+        } else {
+            return size.toFixed(6);
+        }
+    }
+
+    destroy() {
+        if (this.ws) {
+            this.ws.close();
+        }
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+        }
+    }
+}

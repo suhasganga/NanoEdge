@@ -1,0 +1,689 @@
+On this page
+
+To create a new table in the database, the `CREATE TABLE` keywords followed by
+column definitions are used.
+
+## Syntax[​](#syntax "Direct link to Syntax")
+
+To create a table by manually entering parameters and settings:
+
+![Flow chart showing the syntax of the CREATE TABLE keyword](/docs/assets/images/createTableDef-df88809d7b4a0b066fbea56cd53ab691.svg)
+
+note
+
+Checking table metadata can be done via the `tables()` and `table_columns()`
+functions which are described in the
+[meta functions](/docs/query/functions/meta/) documentation page.
+
+To create a table by cloning the metadata of an existing table:
+
+![Flow chart showing the syntax of the CREATE TABLE LIKE keyword](data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MTMiIGhlaWdodD0iNjkiPgogICAgPGRlZnM+CiAgICAgICAgPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KICAgICAgICAgICAgQG5hbWVzcGFjZSAiaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciOwogICAgICAgICAgICAubGluZSAgICAgICAgICAgICAgICAge2ZpbGw6IG5vbmU7IHN0cm9rZTogIzYzNjI3Mzt9CiAgICAgICAgICAgIC5ib2xkLWxpbmUgICAgICAgICAgICB7c3Ryb2tlOiAjNjM2MjczOyBzaGFwZS1yZW5kZXJpbmc6IGNyaXNwRWRnZXM7IHN0cm9rZS13aWR0aDogMjsgfQogICAgICAgICAgICAudGhpbi1saW5lICAgICAgICAgICB7c3Ryb2tlOiAjNjM2MjczOyBzaGFwZS1yZW5kZXJpbmc6IGNyaXNwRWRnZXN9CiAgICAgICAgICAgIC5maWxsZWQgICAgICAgICAgICAgIHtmaWxsOiAjNjM2MjczOyBzdHJva2U6IG5vbmU7fQogICAgICAgICAgICB0ZXh0LnRlcm1pbmFsICAgICAgICB7Zm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgIlNlZ29lIFVJIiwgUm9ib3RvLCBVYnVudHUsIENhbnRhcmVsbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOwogICAgICAgICAgICBmb250LXNpemU6IDEycHg7CiAgICAgICAgICAgIGZpbGw6ICNmZmZmZmY7CiAgICAgICAgICAgIGZvbnQtd2VpZ2h0OiBib2xkOwogICAgICAgICAgICB9CiAgICAgICAgICAgIHRleHQubm9udGVybWluYWwgICAgIHtmb250LWZhbWlseTogLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAiU2Vnb2UgVUkiLCBSb2JvdG8sIFVidW50dSwgQ2FudGFyZWxsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgIGZvbnQtc2l6ZTogMTJweDsKICAgICAgICAgICAgZmlsbDogI2UyODlhNDsKICAgICAgICAgICAgZm9udC13ZWlnaHQ6IG5vcm1hbDsKICAgICAgICAgICAgfQogICAgICAgICAgICB0ZXh0LnJlZ2V4cCAgICAgICAgICB7Zm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgIlNlZ29lIFVJIiwgUm9ib3RvLCBVYnVudHUsIENhbnRhcmVsbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOwogICAgICAgICAgICBmb250LXNpemU6IDEycHg7CiAgICAgICAgICAgIGZpbGw6ICMwMDE0MUY7CiAgICAgICAgICAgIGZvbnQtd2VpZ2h0OiBub3JtYWw7CiAgICAgICAgICAgIH0KICAgICAgICAgICAgcmVjdCwgY2lyY2xlLCBwb2x5Z29uIHtmaWxsOiBub25lOyBzdHJva2U6IG5vbmU7fQogICAgICAgICAgICByZWN0LnRlcm1pbmFsICAgICAgICB7ZmlsbDogbm9uZTsgc3Ryb2tlOiAjYmUyZjViO30KICAgICAgICAgICAgcmVjdC5ub250ZXJtaW5hbCAgICAge2ZpbGw6IHJnYmEoMjU1LDI1NSwyNTUsMC4xKTsgc3Ryb2tlOiBub25lO30KICAgICAgICAgICAgcmVjdC50ZXh0ICAgICAgICAgICAge2ZpbGw6IG5vbmU7IHN0cm9rZTogbm9uZTt9CiAgICAgICAgICAgIHBvbHlnb24ucmVnZXhwICAgICAgIHtmaWxsOiAjQzdFQ0ZGOyBzdHJva2U6ICMwMzhjYmM7fQogICAgICAgIDwvc3R5bGU+CiAgICA8L2RlZnM+CiAgICA8cG9seWdvbiBwb2ludHM9IjkgMTcgMSAxMyAxIDIxIj48L3BvbHlnb24+CiAgICAgICAgIDxwb2x5Z29uIHBvaW50cz0iMTcgMTcgOSAxMyA5IDIxIj48L3BvbHlnb24+CiAgICAgICAgIDxyZWN0IHg9IjMxIiB5PSIzIiB3aWR0aD0iNzIiIGhlaWdodD0iMzIiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8cmVjdCB4PSIyOSIgeT0iMSIgd2lkdGg9IjcyIiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjM5IiB5PSIyMSI+Q1JFQVRFPC90ZXh0PgogICAgICAgICA8cmVjdCB4PSIxMjMiIHk9IjMiIHdpZHRoPSI2MiIgaGVpZ2h0PSIzMiIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDxyZWN0IHg9IjEyMSIgeT0iMSIgd2lkdGg9IjYyIiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjEzMSIgeT0iMjEiPlRBQkxFPC90ZXh0PgogICAgICAgICA8cmVjdCB4PSIyMjUiIHk9IjM1IiB3aWR0aD0iMjYiIGhlaWdodD0iMzIiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8cmVjdCB4PSIyMjMiIHk9IjMzIiB3aWR0aD0iMjYiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iMjMzIiB5PSI1MyI+KDwvdGV4dD4KICAgICAgICAgPHJlY3QgeD0iMjcxIiB5PSIzNSIgd2lkdGg9IjUyIiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iMjY5IiB5PSIzMyIgd2lkdGg9IjUyIiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjI3OSIgeT0iNTMiPkxJS0U8L3RleHQ+PGEgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhsaW5rOmhyZWY9IiNzb3VyY2VUYWJsZU5hbWUiIHhsaW5rOnRpdGxlPSJzb3VyY2VUYWJsZU5hbWUiPgogICAgICAgICAgICA8cmVjdCB4PSIzNDMiIHk9IjM1IiB3aWR0aD0iMTMyIiBoZWlnaHQ9IjMyIj48L3JlY3Q+CiAgICAgICAgICAgIDxyZWN0IHg9IjM0MSIgeT0iMzMiIHdpZHRoPSIxMzIiIGhlaWdodD0iMzIiIGNsYXNzPSJub250ZXJtaW5hbCI+PC9yZWN0PgogICAgICAgICAgICA8dGV4dCBjbGFzcz0ibm9udGVybWluYWwiIHg9IjM1MSIgeT0iNTMiPnNvdXJjZVRhYmxlTmFtZTwvdGV4dD48L2E+PHJlY3QgeD0iNDk1IiB5PSIzNSIgd2lkdGg9IjI2IiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iNDkzIiB5PSIzMyIgd2lkdGg9IjI2IiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjUwMyIgeT0iNTMiPik8L3RleHQ+CiAgICAgICAgIDxyZWN0IHg9IjU2MSIgeT0iMyIgd2lkdGg9IjI0IiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iNTU5IiB5PSIxIiB3aWR0aD0iMjQiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iNTY5IiB5PSIyMSI+OzwvdGV4dD4KICAgICAgICAgPHBhdGggY2xhc3M9ImxpbmUiIGQ9Im0xNyAxNyBoMiBtMCAwIGgxMCBtNzIgMCBoMTAgbTAgMCBoMTAgbTYyIDAgaDEwIG0yMCAwIGgxMCBtMCAwIGgzMDYgbS0zMzYgMCBoMjAgbTMxNiAwIGgyMCBtLTM1NiAwIHExMCAwIDEwIDEwIG0zMzYgMCBxMCAtMTAgMTAgLTEwIG0tMzQ2IDEwIHYxMiBtMzM2IDAgdi0xMiBtLTMzNiAxMiBxMCAxMCAxMCAxMCBtMzE2IDAgcTEwIDAgMTAgLTEwIG0tMzI2IDEwIGgxMCBtMjYgMCBoMTAgbTAgMCBoMTAgbTUyIDAgaDEwIG0wIDAgaDEwIG0xMzIgMCBoMTAgbTAgMCBoMTAgbTI2IDAgaDEwIG0yMCAtMzIgaDEwIG0yNCAwIGgxMCBtMyAwIGgtMyI+PC9wYXRoPgogICAgICAgICA8cG9seWdvbiBwb2ludHM9IjYwMyAxNyA2MTEgMTMgNjExIDIxIj48L3BvbHlnb24+CiAgICAgICAgIDxwb2x5Z29uIHBvaW50cz0iNjAzIDE3IDU5NSAxMyA1OTUgMjEiPjwvcG9seWdvbj4KPC9zdmc+)
+
+## Examples[​](#examples "Direct link to Examples")
+
+The following examples demonstrate creating tables from basic statements, and
+introduces feature such as [partitioning](https://questdb.com/glossary/database-partitioning/),
+designated timestamps and data deduplication. For more information on the
+concepts introduced to below, see
+
+* [designated timestamp](/docs/concepts/designated-timestamp/) reference on
+  electing a timestamp column
+* [partition](/docs/concepts/partitions/) documentation which describes how
+  partitions work in QuestDB
+* [symbol](/docs/concepts/symbol/) reference for using the `symbol` data type
+* [data deduplication](/docs/concepts/deduplication/) reference on discarding
+  duplicates.
+
+This first iteration of our example creates a table with a designated timestamp
+and also applies a partitioning strategy, `BY DAY`:
+
+Basic example, partitioned by day
+
+```prism-code
+CREATE TABLE trades (  
+  timestamp TIMESTAMP,  
+  symbol SYMBOL,  
+  price DOUBLE,  
+  amount DOUBLE  
+) TIMESTAMP(timestamp)  
+PARTITION BY DAY;
+```
+
+Now we can add a time-to-live (TTL) period. Once an entire data partition is
+past its TTL, it becomes eligible for automatic removal.
+
+With TTL
+
+```prism-code
+CREATE TABLE trades (  
+  timestamp TIMESTAMP,  
+  symbol SYMBOL,  
+  price DOUBLE,  
+  amount DOUBLE  
+) TIMESTAMP(timestamp)  
+PARTITION BY DAY  
+TTL 1 WEEK;
+```
+
+Next, we enable data deduplication. This will discard exact duplicates on the
+timestamp and ticker columns:
+
+With deduplication, adding ticker as an upsert key.
+
+```prism-code
+CREATE TABLE trades (  
+  timestamp TIMESTAMP,  
+  symbol SYMBOL,  
+  price DOUBLE,  
+  amount DOUBLE  
+) TIMESTAMP(timestamp)  
+PARTITION BY DAY  
+TTL 1 WEEK  
+DEDUP UPSERT KEYS (timestamp, symbol);
+```
+
+Finally, we add additional parameters for our SYMBOL type:
+
+Adding parameters for symbol type
+
+```prism-code
+CREATE TABLE trades (  
+  timestamp TIMESTAMP,  
+  symbol SYMBOL CAPACITY 256 NOCACHE,  
+  price DOUBLE,  
+  amount DOUBLE  
+) TIMESTAMP(timestamp)  
+PARTITION BY DAY  
+TTL 1 WEEK  
+DEDUP UPSERT KEYS (timestamp, symbol);
+```
+
+## Write-Ahead Log (WAL) Settings[​](#write-ahead-log-wal-settings "Direct link to Write-Ahead Log (WAL) Settings")
+
+By default, created tables are
+[Write-Ahead Log enabled](/docs/concepts/write-ahead-log/). While we recommend
+WAL-enabled tables, it is still possible to create non-WAL-enabled tables.
+
+`CREATE TABLE`'s
+[global configuration setting](/docs/configuration/overview/#cairo-engine) allows you to
+alter the default behaviour via `cairo.wal.enabled.default`:
+
+* `true`: Creates a WAL table (default)
+* `false`: Creates a non-WAL table
+
+And on an individual basis, you can also use `BYPASS WAL`.
+
+## Designated timestamp[​](#designated-timestamp "Direct link to Designated timestamp")
+
+The timestamp function allows for specifying which column (which must be of
+`timestamp` type) should be a designated timestamp for the table. For more
+information, see the [designated timestamp](/docs/concepts/designated-timestamp/)
+reference.
+
+The designated timestamp column **cannot be changed** after the table has been
+created.
+
+## Partitioning[​](#partitioning "Direct link to Partitioning")
+
+`PARTITION BY` allows for specifying the
+[partitioning strategy](/docs/concepts/partitions/) for the table. Tables created
+via SQL are not partitioned by default (`NONE`) and tables can be partitioned by
+one of the following:
+
+* `NONE`: the default when partition is not defined.
+* `YEAR`
+* `MONTH`
+* `WEEK`
+* `DAY`
+* `HOUR`
+
+The partitioning strategy **cannot be changed** after the table has been
+created.
+
+## Time To Live (TTL)[​](#time-to-live-ttl "Direct link to Time To Live (TTL)")
+
+To store and analyze only recent data, configure a time-to-live (TTL) period on
+a table using the `TTL` clause, placing it right after `PARTITION BY <unit>`.
+You can't set TTL on a non-partitioned table.
+
+Follow the `TTL` keyword with a number and a time unit, one of:
+
+* `HOURS`
+* `DAYS`
+* `WEEKS`
+* `MONTHS`
+* `YEARS`
+
+TTL units fall into two categories:
+
+1. Fixed time periods:
+   * `HOURS`
+   * `DAYS`
+   * `WEEKS`
+2. Calendar-based periods:
+   * `MONTHS`
+   * `YEARS`
+
+Fixed-time periods are always exact durations: `1 WEEK` is always 7 days.
+
+Calendar-based periods may vary in length: `1 MONTH` from January 15th goes to
+February 15th and could be between 28 and 31 days.
+
+QuestDB accepts both singular and plural forms:
+
+* `HOUR` or `HOURS`
+* `DAY` or `DAYS`
+* `WEEK` or `WEEKS`
+* `MONTH` or `MONTHS`
+* `YEAR` or `YEARS`
+
+It also supports shorthand notation: `3H` for 3 hours, `2M` for 2 months.
+
+note
+
+QuestDB drops data that exceeded its TTL only a whole partition at a time. For
+this reason, the TTL period must be a whole number multiple of the table's
+partition size.
+
+For example:
+
+* If a table is partitioned by `DAY`, the TTL must be a whole number of days
+  (`24 HOURS`, `2 DAYS` and `3 MONTHS` are all accepted)
+* If a table is partitioned by `MONTH`, the TTL must be in months or years.
+  QuestDB won't accept the `HOUR`, `DAY`, or `WEEK` units
+
+Refer to the [section on TTL in Concepts](/docs/concepts/ttl/) for detailed
+information on the behavior of this feature.
+
+## Deduplication[​](#deduplication "Direct link to Deduplication")
+
+When [Deduplication](/docs/concepts/deduplication/) is enabled, QuestDB only
+inserts rows that do not match the existing data. When you insert a row into a
+table with deduplication enabled, QuestDB searches for existing rows with
+matching values in all the columns specified with `UPSERT KEYS`. It replaces all
+such matching rows with the new row.
+
+Deduplication only works on
+[Write-Ahead Log (WAL)](/docs/concepts/write-ahead-log/) tables.
+
+You can include multiple columns of different types in the `UPSERT KEYS` list.
+
+However, there are a few limitations to keep in mind:
+
+* You must include the designated timestamp column
+* You cannot use an [`ARRAY`](/docs/query/datatypes/overview/) column
+
+You can change the deduplication configuration at any time using `ALTER TABLE`:
+
+* Enable deduplication and change `UPSERT KEYS` with
+  [`ALTER TABLE ENABLE`](/docs/query/sql/alter-table-enable-deduplication/)
+* Disable deduplication with using
+  [`ALTER TABLE DISABLE`](/docs/query/sql/alter-table-disable-deduplication/)
+
+### Examples[​](#examples-1 "Direct link to Examples")
+
+Creating a table for tracking ticker prices with daily partitions and upsert deduplication
+
+```prism-code
+CREATE TABLE trades (  
+  timestamp TIMESTAMP,  
+  symbol SYMBOL,  
+  price DOUBLE,  
+  amount DOUBLE  
+) TIMESTAMP(timestamp)  
+PARTITION BY DAY  
+DEDUP UPSERT KEYS (timestamp, symbol);
+```
+
+Enabling dedup on an existing table, for timestamp and ticker columns
+
+```prism-code
+ALTER TABLE trades DEDUP ENABLE UPSERT KEYS (timestamp, symbol);
+```
+
+Disabling dedup on the entire table
+
+```prism-code
+ALTER TABLE trades DEDUP DISABLE;
+```
+
+Checking whether a table has dedup enabled
+
+```prism-code
+SELECT dedup FROM tables() WHERE table_name = '<the table name>';
+```
+
+Checking whether a column has dedup enabled
+
+```prism-code
+SELECT `column`, upsertKey FROM table_columns('<the table name>');
+```
+
+## IF NOT EXISTS[​](#if-not-exists "Direct link to IF NOT EXISTS")
+
+An optional `IF NOT EXISTS` clause may be added directly after the
+`CREATE TABLE` keywords to indicate that a new table should be created if one
+with the desired table name does not already exist.
+
+```prism-code
+CREATE TABLE IF NOT EXISTS trades (  
+  timestamp TIMESTAMP,  
+  symbol SYMBOL,  
+  price DOUBLE,  
+  amount DOUBLE  
+) TIMESTAMP(timestamp)  
+PARTITION BY DAY;
+```
+
+## Table name[​](#table-name "Direct link to Table name")
+
+Internally the table name is used as a directory name on the file system. It can
+contain both ASCII and Unicode characters. The table name **must be unique** and
+an error is returned if a table already exists with the requested name.
+
+Validation rules:
+
+* Length: subject to filesystem limits (typically ≤255).
+* Spaces: **not** allowed at the start or end.
+* Period `.`: only a **single** dot is allowed **not** at the start or end and **not** next to another dot.
+* Disallowed characters: `?`, `,`, `'`, `"`, `\`, `/`, `:`, `)`, `(`, `+`, `*`, `%`, `~`, `\u0000`, `\u0001`,
+  `\u0002`, `\u0003`, `\u0004`, `\u0005`, `\u0006`, `\u0007`, `\u0008`, `\t`, `\u000B`, `\u000c`, `\r`, `\n`,
+  `\u000e`, `\u000f`, `\u007f`, `0xfeff` (UTF-8 BOM).
+
+Some clients may have trouble parsing table names that contain unusual characters, even if those names are valid in
+QuestDB. For best results, we recommend using only alphanumeric characters along with `-`, `_`, or `.`.
+
+In addition, table names are case insensitive: `example`, `exAmPlE`, `EXAMplE`
+and `EXAMPLE` are all treated the same. Table names containing spaces or period
+`.` character must be enclosed in **double quotes**, for example:
+
+```prism-code
+CREATE TABLE "example out of.space" (a INT);  
+INSERT INTO "example out of.space" VALUES (1);
+```
+
+## Column name[​](#column-name "Direct link to Column name")
+
+As with table names, the column name is used for file names internally. Although
+it does support both ASCII and Unicode characters, character restrictions
+specific to the file system still apply.
+
+Tables may have up to **2,147,483,647** columns. Column names are also case
+insensitive. For example: `example`, `exAmPlE`, `EXAMplE` and `EXAMPLE` are all
+treated the same. However, column names **must be** unique within each table and
+**must not contain** a period `.` character.
+
+Validation rules:
+
+* Length: subject to filesystem limits (typically ≤255).
+  + Period `.` : not allowed.
+  + Hyphen `-`: not allowed.
+  + Other disallowed characters: `?`, `.`, `,`, `'`, `"`, `\`, `/`, `:`, `)`, `(`, `+`, `-`, `*`, `%`, `~`,
+    `\u0000`, `\u0001`, `\u0002`, `\u0003`, `\u0004`, `\u0005`, `\u0006`, `\u0007`, `\u0008`, `\t`, `\u000B`,
+    `\u000c`, `\n`, `\r`, `\u000e`, `\u000f`, `\u007f`, `0xfeff` (UTF-8 BOM).
+
+Some clients may have trouble parsing column names that contain unusual characters, even if those names are valid in
+QuestDB. For best results, we recommend using only alphanumeric characters along with `-`, or `_`.
+
+## Type definition[​](#type-definition "Direct link to Type definition")
+
+When specifying a column, a name and
+[type definition](/docs/query/datatypes/overview/) must be provided. The `symbol`
+type may have additional optional parameters applied.
+
+![Flow chart showing the syntax of the different column types](data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDciIGhlaWdodD0iODQ5Ij4KICAgIDxkZWZzPgogICAgICAgIDxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+CiAgICAgICAgICAgIEBuYW1lc3BhY2UgImh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIjsKICAgICAgICAgICAgLmxpbmUgICAgICAgICAgICAgICAgIHtmaWxsOiBub25lOyBzdHJva2U6ICM2MzYyNzM7fQogICAgICAgICAgICAuYm9sZC1saW5lICAgICAgICAgICAge3N0cm9rZTogIzYzNjI3Mzsgc2hhcGUtcmVuZGVyaW5nOiBjcmlzcEVkZ2VzOyBzdHJva2Utd2lkdGg6IDI7IH0KICAgICAgICAgICAgLnRoaW4tbGluZSAgICAgICAgICAge3N0cm9rZTogIzYzNjI3Mzsgc2hhcGUtcmVuZGVyaW5nOiBjcmlzcEVkZ2VzfQogICAgICAgICAgICAuZmlsbGVkICAgICAgICAgICAgICB7ZmlsbDogIzYzNjI3Mzsgc3Ryb2tlOiBub25lO30KICAgICAgICAgICAgdGV4dC50ZXJtaW5hbCAgICAgICAge2ZvbnQtZmFtaWx5OiAtYXBwbGUtc3lzdGVtLCBCbGlua01hY1N5c3RlbUZvbnQsICJTZWdvZSBVSSIsIFJvYm90bywgVWJ1bnR1LCBDYW50YXJlbGwsIEhlbHZldGljYSwgc2Fucy1zZXJpZjsKICAgICAgICAgICAgZm9udC1zaXplOiAxMnB4OwogICAgICAgICAgICBmaWxsOiAjZmZmZmZmOwogICAgICAgICAgICBmb250LXdlaWdodDogYm9sZDsKICAgICAgICAgICAgfQogICAgICAgICAgICB0ZXh0Lm5vbnRlcm1pbmFsICAgICB7Zm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgIlNlZ29lIFVJIiwgUm9ib3RvLCBVYnVudHUsIENhbnRhcmVsbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOwogICAgICAgICAgICBmb250LXNpemU6IDEycHg7CiAgICAgICAgICAgIGZpbGw6ICNlMjg5YTQ7CiAgICAgICAgICAgIGZvbnQtd2VpZ2h0OiBub3JtYWw7CiAgICAgICAgICAgIH0KICAgICAgICAgICAgdGV4dC5yZWdleHAgICAgICAgICAge2ZvbnQtZmFtaWx5OiAtYXBwbGUtc3lzdGVtLCBCbGlua01hY1N5c3RlbUZvbnQsICJTZWdvZSBVSSIsIFJvYm90bywgVWJ1bnR1LCBDYW50YXJlbGwsIEhlbHZldGljYSwgc2Fucy1zZXJpZjsKICAgICAgICAgICAgZm9udC1zaXplOiAxMnB4OwogICAgICAgICAgICBmaWxsOiAjMDAxNDFGOwogICAgICAgICAgICBmb250LXdlaWdodDogbm9ybWFsOwogICAgICAgICAgICB9CiAgICAgICAgICAgIHJlY3QsIGNpcmNsZSwgcG9seWdvbiB7ZmlsbDogbm9uZTsgc3Ryb2tlOiBub25lO30KICAgICAgICAgICAgcmVjdC50ZXJtaW5hbCAgICAgICAge2ZpbGw6IG5vbmU7IHN0cm9rZTogI2JlMmY1Yjt9CiAgICAgICAgICAgIHJlY3Qubm9udGVybWluYWwgICAgIHtmaWxsOiByZ2JhKDI1NSwyNTUsMjU1LDAuMSk7IHN0cm9rZTogbm9uZTt9CiAgICAgICAgICAgIHJlY3QudGV4dCAgICAgICAgICAgIHtmaWxsOiBub25lOyBzdHJva2U6IG5vbmU7fQogICAgICAgICAgICBwb2x5Z29uLnJlZ2V4cCAgICAgICB7ZmlsbDogI0M3RUNGRjsgc3Ryb2tlOiAjMDM4Y2JjO30KICAgICAgICA8L3N0eWxlPgogICAgPC9kZWZzPgogICAgPHBvbHlnb24gcG9pbnRzPSI5IDE3IDEgMTMgMSAyMSI+PC9wb2x5Z29uPgogICAgICAgICA8cG9seWdvbiBwb2ludHM9IjE3IDE3IDkgMTMgOSAyMSI+PC9wb2x5Z29uPgogICAgICAgICA8cmVjdCB4PSI1MSIgeT0iMyIgd2lkdGg9IjcyIiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iNDkiIHk9IjEiIHdpZHRoPSI3MiIgaGVpZ2h0PSIzMiIgY2xhc3M9InRlcm1pbmFsIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHRleHQgY2xhc3M9InRlcm1pbmFsIiB4PSI1OSIgeT0iMjEiPmJvb2xlYW48L3RleHQ+CiAgICAgICAgIDxyZWN0IHg9IjUxIiB5PSI0NyIgd2lkdGg9IjUwIiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iNDkiIHk9IjQ1IiB3aWR0aD0iNTAiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iNTkiIHk9IjY1Ij5ieXRlPC90ZXh0PgogICAgICAgICA8cmVjdCB4PSI1MSIgeT0iOTEiIHdpZHRoPSI1NCIgaGVpZ2h0PSIzMiIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDxyZWN0IHg9IjQ5IiB5PSI4OSIgd2lkdGg9IjU0IiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjU5IiB5PSIxMDkiPnNob3J0PC90ZXh0PgogICAgICAgICA8cmVjdCB4PSI1MSIgeT0iMTM1IiB3aWR0aD0iNTAiIGhlaWdodD0iMzIiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8cmVjdCB4PSI0OSIgeT0iMTMzIiB3aWR0aD0iNTAiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iNTkiIHk9IjE1MyI+Y2hhcjwvdGV4dD4KICAgICAgICAgPHJlY3QgeD0iNTEiIHk9IjE3OSIgd2lkdGg9IjM4IiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iNDkiIHk9IjE3NyIgd2lkdGg9IjM4IiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjU5IiB5PSIxOTciPmludDwvdGV4dD4KICAgICAgICAgPHJlY3QgeD0iNTEiIHk9IjIyMyIgd2lkdGg9IjUwIiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iNDkiIHk9IjIyMSIgd2lkdGg9IjUwIiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjU5IiB5PSIyNDEiPmZsb2F0PC90ZXh0PgogICAgICAgICA8cmVjdCB4PSI1MSIgeT0iMjY3IiB3aWR0aD0iNjgiIGhlaWdodD0iMzIiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8cmVjdCB4PSI0OSIgeT0iMjY1IiB3aWR0aD0iNjgiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iNTkiIHk9IjI4NSI+c3ltYm9sPC90ZXh0PgogICAgICAgICA8cmVjdCB4PSIxNTkiIHk9IjI5OSIgd2lkdGg9Ijg4IiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iMTU3IiB5PSIyOTciIHdpZHRoPSI4OCIgaGVpZ2h0PSIzMiIgY2xhc3M9InRlcm1pbmFsIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHRleHQgY2xhc3M9InRlcm1pbmFsIiB4PSIxNjciIHk9IjMxNyI+Q0FQQUNJVFk8L3RleHQ+PGEgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhsaW5rOmhyZWY9IiNkaXN0aW5jdFZhbHVlRXN0aW1hdGUiIHhsaW5rOnRpdGxlPSJkaXN0aW5jdFZhbHVlRXN0aW1hdGUiPgogICAgICAgICAgICA8cmVjdCB4PSIyNjciIHk9IjI5OSIgd2lkdGg9IjE1NiIgaGVpZ2h0PSIzMiI+PC9yZWN0PgogICAgICAgICAgICA8cmVjdCB4PSIyNjUiIHk9IjI5NyIgd2lkdGg9IjE1NiIgaGVpZ2h0PSIzMiIgY2xhc3M9Im5vbnRlcm1pbmFsIj48L3JlY3Q+CiAgICAgICAgICAgIDx0ZXh0IGNsYXNzPSJub250ZXJtaW5hbCIgeD0iMjc1IiB5PSIzMTciPmRpc3RpbmN0VmFsdWVFc3RpbWF0ZTwvdGV4dD48L2E+PHJlY3QgeD0iNDYzIiB5PSIzMzEiIHdpZHRoPSI2NiIgaGVpZ2h0PSIzMiIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDxyZWN0IHg9IjQ2MSIgeT0iMzI5IiB3aWR0aD0iNjYiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iNDcxIiB5PSIzNDkiPkNBQ0hFPC90ZXh0PgogICAgICAgICA8cmVjdCB4PSI0NjMiIHk9IjM3NSIgd2lkdGg9Ijg2IiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iNDYxIiB5PSIzNzMiIHdpZHRoPSI4NiIgaGVpZ2h0PSIzMiIgY2xhc3M9InRlcm1pbmFsIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHRleHQgY2xhc3M9InRlcm1pbmFsIiB4PSI0NzEiIHk9IjM5MyI+Tk9DQUNIRTwvdGV4dD48YSB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeGxpbms6aHJlZj0iI2lubGluZUluZGV4RGVmIiB4bGluazp0aXRsZT0iaW5saW5lSW5kZXhEZWYiPgogICAgICAgICAgICA8cmVjdCB4PSI2MjkiIHk9IjI5OSIgd2lkdGg9IjExMCIgaGVpZ2h0PSIzMiI+PC9yZWN0PgogICAgICAgICAgICA8cmVjdCB4PSI2MjciIHk9IjI5NyIgd2lkdGg9IjExMCIgaGVpZ2h0PSIzMiIgY2xhc3M9Im5vbnRlcm1pbmFsIj48L3JlY3Q+CiAgICAgICAgICAgIDx0ZXh0IGNsYXNzPSJub250ZXJtaW5hbCIgeD0iNjM3IiB5PSIzMTciPmlubGluZUluZGV4RGVmPC90ZXh0PjwvYT48cmVjdCB4PSI1MSIgeT0iNDE5IiB3aWR0aD0iNzIiIGhlaWdodD0iMzIiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8cmVjdCB4PSI0OSIgeT0iNDE3IiB3aWR0aD0iNzIiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iNTkiIHk9IjQzNyI+dmFyY2hhcjwvdGV4dD4KICAgICAgICAgPHJlY3QgeD0iNTEiIHk9IjQ2MyIgd2lkdGg9IjYwIiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iNDkiIHk9IjQ2MSIgd2lkdGg9IjYwIiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjU5IiB5PSI0ODEiPnN0cmluZzwvdGV4dD4KICAgICAgICAgPHJlY3QgeD0iNTEiIHk9IjUwNyIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iNDkiIHk9IjUwNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjU5IiB5PSI1MjUiPmxvbmc8L3RleHQ+CiAgICAgICAgIDxyZWN0IHg9IjUxIiB5PSI1NTEiIHdpZHRoPSI1MCIgaGVpZ2h0PSIzMiIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDxyZWN0IHg9IjQ5IiB5PSI1NDkiIHdpZHRoPSI1MCIgaGVpZ2h0PSIzMiIgY2xhc3M9InRlcm1pbmFsIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHRleHQgY2xhc3M9InRlcm1pbmFsIiB4PSI1OSIgeT0iNTY5Ij5kYXRlPC90ZXh0PgogICAgICAgICA8cmVjdCB4PSI1MSIgeT0iNTk1IiB3aWR0aD0iOTIiIGhlaWdodD0iMzIiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8cmVjdCB4PSI0OSIgeT0iNTkzIiB3aWR0aD0iOTIiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iNTkiIHk9IjYxMyI+dGltZXN0YW1wPC90ZXh0PgogICAgICAgICA8cmVjdCB4PSI1MSIgeT0iNjM5IiB3aWR0aD0iNjYiIGhlaWdodD0iMzIiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8cmVjdCB4PSI0OSIgeT0iNjM3IiB3aWR0aD0iNjYiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iNTkiIHk9IjY1NyI+ZG91YmxlPC90ZXh0PgogICAgICAgICA8cmVjdCB4PSI1MSIgeT0iNjgzIiB3aWR0aD0iNjIiIGhlaWdodD0iMzIiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8cmVjdCB4PSI0OSIgeT0iNjgxIiB3aWR0aD0iNjIiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iNTkiIHk9IjcwMSI+YmluYXJ5PC90ZXh0PgogICAgICAgICA8cmVjdCB4PSI1MSIgeT0iNzI3IiB3aWR0aD0iNzYiIGhlaWdodD0iMzIiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8cmVjdCB4PSI0OSIgeT0iNzI1IiB3aWR0aD0iNzYiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iNTkiIHk9Ijc0NSI+bG9uZzI1NjwvdGV4dD4KICAgICAgICAgPHJlY3QgeD0iNTEiIHk9Ijc3MSIgd2lkdGg9IjEzOCIgaGVpZ2h0PSIzMiIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDxyZWN0IHg9IjQ5IiB5PSI3NjkiIHdpZHRoPSIxMzgiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iNTkiIHk9Ijc4OSI+Z2VvaGFzaCgmbHQ7c2l6ZSZndDspPC90ZXh0PgogICAgICAgICA8cmVjdCB4PSI1MSIgeT0iODE1IiB3aWR0aD0iMjMyIiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iNDkiIHk9IjgxMyIgd2lkdGg9IjIzMiIgaGVpZ2h0PSIzMiIgY2xhc3M9InRlcm1pbmFsIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHRleHQgY2xhc3M9InRlcm1pbmFsIiB4PSI1OSIgeT0iODMzIj5kZWNpbWFsKCZsdDtwcmVjaXNpb24mZ3Q7LCAmbHQ7c2NhbGUmZ3Q7KTwvdGV4dD4KICAgICAgICAgPHBhdGggY2xhc3M9ImxpbmUiIGQ9Im0xNyAxNyBoMiBtMjAgMCBoMTAgbTcyIDAgaDEwIG0wIDAgaDYzNiBtLTc0OCAwIGgyMCBtNzI4IDAgaDIwIG0tNzY4IDAgcTEwIDAgMTAgMTAgbTc0OCAwIHEwIC0xMCAxMCAtMTAgbS03NTggMTAgdjI0IG03NDggMCB2LTI0IG0tNzQ4IDI0IHEwIDEwIDEwIDEwIG03MjggMCBxMTAgMCAxMCAtMTAgbS03MzggMTAgaDEwIG01MCAwIGgxMCBtMCAwIGg2NTggbS03MzggLTEwIHYyMCBtNzQ4IDAgdi0yMCBtLTc0OCAyMCB2MjQgbTc0OCAwIHYtMjQgbS03NDggMjQgcTAgMTAgMTAgMTAgbTcyOCAwIHExMCAwIDEwIC0xMCBtLTczOCAxMCBoMTAgbTU0IDAgaDEwIG0wIDAgaDY1NCBtLTczOCAtMTAgdjIwIG03NDggMCB2LTIwIG0tNzQ4IDIwIHYyNCBtNzQ4IDAgdi0yNCBtLTc0OCAyNCBxMCAxMCAxMCAxMCBtNzI4IDAgcTEwIDAgMTAgLTEwIG0tNzM4IDEwIGgxMCBtNTAgMCBoMTAgbTAgMCBoNjU4IG0tNzM4IC0xMCB2MjAgbTc0OCAwIHYtMjAgbS03NDggMjAgdjI0IG03NDggMCB2LTI0IG0tNzQ4IDI0IHEwIDEwIDEwIDEwIG03MjggMCBxMTAgMCAxMCAtMTAgbS03MzggMTAgaDEwIG0zOCAwIGgxMCBtMCAwIGg2NzAgbS03MzggLTEwIHYyMCBtNzQ4IDAgdi0yMCBtLTc0OCAyMCB2MjQgbTc0OCAwIHYtMjQgbS03NDggMjQgcTAgMTAgMTAgMTAgbTcyOCAwIHExMCAwIDEwIC0xMCBtLTczOCAxMCBoMTAgbTUwIDAgaDEwIG0wIDAgaDY1OCBtLTczOCAtMTAgdjIwIG03NDggMCB2LTIwIG0tNzQ4IDIwIHYyNCBtNzQ4IDAgdi0yNCBtLTc0OCAyNCBxMCAxMCAxMCAxMCBtNzI4IDAgcTEwIDAgMTAgLTEwIG0tNzM4IDEwIGgxMCBtNjggMCBoMTAgbTIwIDAgaDEwIG0wIDAgaDQyMCBtLTQ1MCAwIGgyMCBtNDMwIDAgaDIwIG0tNDcwIDAgcTEwIDAgMTAgMTAgbTQ1MCAwIHEwIC0xMCAxMCAtMTAgbS00NjAgMTAgdjEyIG00NTAgMCB2LTEyIG0tNDUwIDEyIHEwIDEwIDEwIDEwIG00MzAgMCBxMTAgMCAxMCAtMTAgbS00NDAgMTAgaDEwIG04OCAwIGgxMCBtMCAwIGgxMCBtMTU2IDAgaDEwIG0yMCAwIGgxMCBtMCAwIGg5NiBtLTEyNiAwIGgyMCBtMTA2IDAgaDIwIG0tMTQ2IDAgcTEwIDAgMTAgMTAgbTEyNiAwIHEwIC0xMCAxMCAtMTAgbS0xMzYgMTAgdjEyIG0xMjYgMCB2LTEyIG0tMTI2IDEyIHEwIDEwIDEwIDEwIG0xMDYgMCBxMTAgMCAxMCAtMTAgbS0xMTYgMTAgaDEwIG02NiAwIGgxMCBtMCAwIGgyMCBtLTExNiAtMTAgdjIwIG0xMjYgMCB2LTIwIG0tMTI2IDIwIHYyNCBtMTI2IDAgdi0yNCBtLTEyNiAyNCBxMCAxMCAxMCAxMCBtMTA2IDAgcTEwIDAgMTAgLTEwIG0tMTE2IDEwIGgxMCBtODYgMCBoMTAgbTYwIC0xMDggaDEwIG0wIDAgaDEyMCBtLTE1MCAwIGgyMCBtMTMwIDAgaDIwIG0tMTcwIDAgcTEwIDAgMTAgMTAgbTE1MCAwIHEwIC0xMCAxMCAtMTAgbS0xNjAgMTAgdjEyIG0xNTAgMCB2LTEyIG0tMTUwIDEyIHEwIDEwIDEwIDEwIG0xMzAgMCBxMTAgMCAxMCAtMTAgbS0xNDAgMTAgaDEwIG0xMTAgMCBoMTAgbS03MTggLTQyIHYyMCBtNzQ4IDAgdi0yMCBtLTc0OCAyMCB2MTMyIG03NDggMCB2LTEzMiBtLTc0OCAxMzIgcTAgMTAgMTAgMTAgbTcyOCAwIHExMCAwIDEwIC0xMCBtLTczOCAxMCBoMTAgbTcyIDAgaDEwIG0wIDAgaDYzNiBtLTczOCAtMTAgdjIwIG03NDggMCB2LTIwIG0tNzQ4IDIwIHYyNCBtNzQ4IDAgdi0yNCBtLTc0OCAyNCBxMCAxMCAxMCAxMCBtNzI4IDAgcTEwIDAgMTAgLTEwIG0tNzM4IDEwIGgxMCBtNjAgMCBoMTAgbTAgMCBoNjQ4IG0tNzM4IC0xMCB2MjAgbTc0OCAwIHYtMjAgbS03NDggMjAgdjI0IG03NDggMCB2LTI0IG0tNzQ4IDI0IHEwIDEwIDEwIDEwIG03MjggMCBxMTAgMCAxMCAtMTAgbS03MzggMTAgaDEwIG00OCAwIGgxMCBtMCAwIGg2NjAgbS03MzggLTEwIHYyMCBtNzQ4IDAgdi0yMCBtLTc0OCAyMCB2MjQgbTc0OCAwIHYtMjQgbS03NDggMjQgcTAgMTAgMTAgMTAgbTcyOCAwIHExMCAwIDEwIC0xMCBtLTczOCAxMCBoMTAgbTUwIDAgaDEwIG0wIDAgaDY1OCBtLTczOCAtMTAgdjIwIG03NDggMCB2LTIwIG0tNzQ4IDIwIHYyNCBtNzQ4IDAgdi0yNCBtLTc0OCAyNCBxMCAxMCAxMCAxMCBtNzI4IDAgcTEwIDAgMTAgLTEwIG0tNzM4IDEwIGgxMCBtOTIgMCBoMTAgbTAgMCBoNjE2IG0tNzM4IC0xMCB2MjAgbTc0OCAwIHYtMjAgbS03NDggMjAgdjI0IG03NDggMCB2LTI0IG0tNzQ4IDI0IHEwIDEwIDEwIDEwIG03MjggMCBxMTAgMCAxMCAtMTAgbS03MzggMTAgaDEwIG02NiAwIGgxMCBtMCAwIGg2NDIgbS03MzggLTEwIHYyMCBtNzQ4IDAgdi0yMCBtLTc0OCAyMCB2MjQgbTc0OCAwIHYtMjQgbS03NDggMjQgcTAgMTAgMTAgMTAgbTcyOCAwIHExMCAwIDEwIC0xMCBtLTczOCAxMCBoMTAgbTYyIDAgaDEwIG0wIDAgaDY0NiBtLTczOCAtMTAgdjIwIG03NDggMCB2LTIwIG0tNzQ4IDIwIHYyNCBtNzQ4IDAgdi0yNCBtLTc0OCAyNCBxMCAxMCAxMCAxMCBtNzI4IDAgcTEwIDAgMTAgLTEwIG0tNzM4IDEwIGgxMCBtNzYgMCBoMTAgbTAgMCBoNjMyIG0tNzM4IC0xMCB2MjAgbTc0OCAwIHYtMjAgbS03NDggMjAgdjI0IG03NDggMCB2LTI0IG0tNzQ4IDI0IHEwIDEwIDEwIDEwIG03MjggMCBxMTAgMCAxMCAtMTAgbS03MzggMTAgaDEwIG0xMzggMCBoMTAgbTAgMCBoNTcwIG0tNzM4IC0xMCB2MjAgbTc0OCAwIHYtMjAgbS03NDggMjAgdjI0IG03NDggMCB2LTI0IG0tNzQ4IDI0IHEwIDEwIDEwIDEwIG03MjggMCBxMTAgMCAxMCAtMTAgbS03MzggMTAgaDEwIG0yMzIgMCBoMTAgbTAgMCBoNDc2IG0yMyAtODEyIGgtMyI+PC9wYXRoPgogICAgICAgICA8cG9seWdvbiBwb2ludHM9Ijc5NyAxNyA4MDUgMTMgODA1IDIxIj48L3BvbHlnb24+CiAgICAgICAgIDxwb2x5Z29uIHBvaW50cz0iNzk3IDE3IDc4OSAxMyA3ODkgMjEiPjwvcG9seWdvbj4KPC9zdmc+)
+
+### Symbols[​](#symbols "Direct link to Symbols")
+
+Optional keywords and parameters may follow the `symbol` type which allow for
+further optimization on the handling of this type. For more information on the
+benefits of using this type, see the [symbol](/docs/concepts/symbol/) overview.
+
+#### Symbol capacity[​](#symbol-capacity "Direct link to Symbol capacity")
+
+`CAPACITY` is an optional keyword used when defining a symbol type on table
+creation to indicate how many distinct values this column is expected to have.
+When `distinctValueEstimate` is not explicitly specified, a default value of
+`cairo.default.symbol.capacity` is used.
+
+`distinctValueEstimate` - the value used to size data structures for
+[symbols](/docs/concepts/symbol/).
+
+```prism-code
+CREATE TABLE trades (  
+  timestamp TIMESTAMP,  
+  symbol SYMBOL CAPACITY 50,  
+  price DOUBLE,  
+  amount DOUBLE  
+) TIMESTAMP(timestamp)  
+PARTITION BY DAY;
+```
+
+#### Symbol caching[​](#symbol-caching "Direct link to Symbol caching")
+
+`CACHE | NOCACHE` is used to specify whether a symbol should be cached. The
+default value is `CACHE` unless otherwise specified.
+
+```prism-code
+CREATE TABLE trades (  
+  timestamp TIMESTAMP,  
+  symbol SYMBOL CAPACITY 50 NOCACHE,  
+  price DOUBLE,  
+  amount DOUBLE  
+) TIMESTAMP(timestamp);
+```
+
+### Casting types[​](#casting-types "Direct link to Casting types")
+
+`castDef` - casts the type of a specific column. `columnRef` must reference
+existing column in the `selectSql`
+
+![Flow chart showing the syntax of the cast function](data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NDkiIGhlaWdodD0iMzciPgogICAgPGRlZnM+CiAgICAgICAgPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KICAgICAgICAgICAgQG5hbWVzcGFjZSAiaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciOwogICAgICAgICAgICAubGluZSAgICAgICAgICAgICAgICAge2ZpbGw6IG5vbmU7IHN0cm9rZTogIzYzNjI3Mzt9CiAgICAgICAgICAgIC5ib2xkLWxpbmUgICAgICAgICAgICB7c3Ryb2tlOiAjNjM2MjczOyBzaGFwZS1yZW5kZXJpbmc6IGNyaXNwRWRnZXM7IHN0cm9rZS13aWR0aDogMjsgfQogICAgICAgICAgICAudGhpbi1saW5lICAgICAgICAgICB7c3Ryb2tlOiAjNjM2MjczOyBzaGFwZS1yZW5kZXJpbmc6IGNyaXNwRWRnZXN9CiAgICAgICAgICAgIC5maWxsZWQgICAgICAgICAgICAgIHtmaWxsOiAjNjM2MjczOyBzdHJva2U6IG5vbmU7fQogICAgICAgICAgICB0ZXh0LnRlcm1pbmFsICAgICAgICB7Zm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgIlNlZ29lIFVJIiwgUm9ib3RvLCBVYnVudHUsIENhbnRhcmVsbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOwogICAgICAgICAgICBmb250LXNpemU6IDEycHg7CiAgICAgICAgICAgIGZpbGw6ICNmZmZmZmY7CiAgICAgICAgICAgIGZvbnQtd2VpZ2h0OiBib2xkOwogICAgICAgICAgICB9CiAgICAgICAgICAgIHRleHQubm9udGVybWluYWwgICAgIHtmb250LWZhbWlseTogLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAiU2Vnb2UgVUkiLCBSb2JvdG8sIFVidW50dSwgQ2FudGFyZWxsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgIGZvbnQtc2l6ZTogMTJweDsKICAgICAgICAgICAgZmlsbDogI2UyODlhNDsKICAgICAgICAgICAgZm9udC13ZWlnaHQ6IG5vcm1hbDsKICAgICAgICAgICAgfQogICAgICAgICAgICB0ZXh0LnJlZ2V4cCAgICAgICAgICB7Zm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgIlNlZ29lIFVJIiwgUm9ib3RvLCBVYnVudHUsIENhbnRhcmVsbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOwogICAgICAgICAgICBmb250LXNpemU6IDEycHg7CiAgICAgICAgICAgIGZpbGw6ICMwMDE0MUY7CiAgICAgICAgICAgIGZvbnQtd2VpZ2h0OiBub3JtYWw7CiAgICAgICAgICAgIH0KICAgICAgICAgICAgcmVjdCwgY2lyY2xlLCBwb2x5Z29uIHtmaWxsOiBub25lOyBzdHJva2U6IG5vbmU7fQogICAgICAgICAgICByZWN0LnRlcm1pbmFsICAgICAgICB7ZmlsbDogbm9uZTsgc3Ryb2tlOiAjYmUyZjViO30KICAgICAgICAgICAgcmVjdC5ub250ZXJtaW5hbCAgICAge2ZpbGw6IHJnYmEoMjU1LDI1NSwyNTUsMC4xKTsgc3Ryb2tlOiBub25lO30KICAgICAgICAgICAgcmVjdC50ZXh0ICAgICAgICAgICAge2ZpbGw6IG5vbmU7IHN0cm9rZTogbm9uZTt9CiAgICAgICAgICAgIHBvbHlnb24ucmVnZXhwICAgICAgIHtmaWxsOiAjQzdFQ0ZGOyBzdHJva2U6ICMwMzhjYmM7fQogICAgICAgIDwvc3R5bGU+CiAgICA8L2RlZnM+CiAgICA8cG9seWdvbiBwb2ludHM9IjkgMTcgMSAxMyAxIDIxIj48L3BvbHlnb24+CiAgICAgICAgIDxwb2x5Z29uIHBvaW50cz0iMTcgMTcgOSAxMyA5IDIxIj48L3BvbHlnb24+CiAgICAgICAgIDxyZWN0IHg9IjMxIiB5PSIzIiB3aWR0aD0iNDgiIGhlaWdodD0iMzIiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8cmVjdCB4PSIyOSIgeT0iMSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjM5IiB5PSIyMSI+Y2FzdDwvdGV4dD4KICAgICAgICAgPHJlY3QgeD0iOTkiIHk9IjMiIHdpZHRoPSIyNiIgaGVpZ2h0PSIzMiIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDxyZWN0IHg9Ijk3IiB5PSIxIiB3aWR0aD0iMjYiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iMTA3IiB5PSIyMSI+KDwvdGV4dD48YSB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeGxpbms6aHJlZj0iI2NvbHVtblJlZiIgeGxpbms6dGl0bGU9ImNvbHVtblJlZiI+CiAgICAgICAgICAgIDxyZWN0IHg9IjE0NSIgeT0iMyIgd2lkdGg9Ijg2IiBoZWlnaHQ9IjMyIj48L3JlY3Q+CiAgICAgICAgICAgIDxyZWN0IHg9IjE0MyIgeT0iMSIgd2lkdGg9Ijg2IiBoZWlnaHQ9IjMyIiBjbGFzcz0ibm9udGVybWluYWwiPjwvcmVjdD4KICAgICAgICAgICAgPHRleHQgY2xhc3M9Im5vbnRlcm1pbmFsIiB4PSIxNTMiIHk9IjIxIj5jb2x1bW5SZWY8L3RleHQ+PC9hPjxyZWN0IHg9IjI1MSIgeT0iMyIgd2lkdGg9IjM0IiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iMjQ5IiB5PSIxIiB3aWR0aD0iMzQiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iMjU5IiB5PSIyMSI+YXM8L3RleHQ+PGEgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhsaW5rOmhyZWY9IiN0eXBlRGVmIiB4bGluazp0aXRsZT0idHlwZURlZiI+CiAgICAgICAgICAgIDxyZWN0IHg9IjMwNSIgeT0iMyIgd2lkdGg9IjcwIiBoZWlnaHQ9IjMyIj48L3JlY3Q+CiAgICAgICAgICAgIDxyZWN0IHg9IjMwMyIgeT0iMSIgd2lkdGg9IjcwIiBoZWlnaHQ9IjMyIiBjbGFzcz0ibm9udGVybWluYWwiPjwvcmVjdD4KICAgICAgICAgICAgPHRleHQgY2xhc3M9Im5vbnRlcm1pbmFsIiB4PSIzMTMiIHk9IjIxIj50eXBlRGVmPC90ZXh0PjwvYT48cmVjdCB4PSIzOTUiIHk9IjMiIHdpZHRoPSIyNiIgaGVpZ2h0PSIzMiIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDxyZWN0IHg9IjM5MyIgeT0iMSIgd2lkdGg9IjI2IiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjQwMyIgeT0iMjEiPik8L3RleHQ+CiAgICAgICAgIDxwYXRoIGNsYXNzPSJsaW5lIiBkPSJtMTcgMTcgaDIgbTAgMCBoMTAgbTQ4IDAgaDEwIG0wIDAgaDEwIG0yNiAwIGgxMCBtMCAwIGgxMCBtODYgMCBoMTAgbTAgMCBoMTAgbTM0IDAgaDEwIG0wIDAgaDEwIG03MCAwIGgxMCBtMCAwIGgxMCBtMjYgMCBoMTAgbTMgMCBoLTMiPjwvcGF0aD4KICAgICAgICAgPHBvbHlnb24gcG9pbnRzPSI0MzkgMTcgNDQ3IDEzIDQ0NyAyMSI+PC9wb2x5Z29uPgogICAgICAgICA8cG9seWdvbiBwb2ludHM9IjQzOSAxNyA0MzEgMTMgNDMxIDIxIj48L3BvbHlnb24+Cjwvc3ZnPg==)
+
+```prism-code
+CREATE TABLE test AS (  
+  SELECT x FROM long_sequence(10)  
+), CAST (x AS DOUBLE);
+```
+
+## Column indexes[​](#column-indexes "Direct link to Column indexes")
+
+Index definitions (`indexDef`) are used to create an
+[index](/docs/concepts/deep-dive/indexes/) for a table column. The referenced table column
+must be of type [symbol](/docs/concepts/symbol/).
+
+![Flow chart showing the syntax of the index function](data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDMiIGhlaWdodD0iNjkiPgogICAgPGRlZnM+CiAgICAgICAgPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KICAgICAgICAgICAgQG5hbWVzcGFjZSAiaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciOwogICAgICAgICAgICAubGluZSAgICAgICAgICAgICAgICAge2ZpbGw6IG5vbmU7IHN0cm9rZTogIzYzNjI3Mzt9CiAgICAgICAgICAgIC5ib2xkLWxpbmUgICAgICAgICAgICB7c3Ryb2tlOiAjNjM2MjczOyBzaGFwZS1yZW5kZXJpbmc6IGNyaXNwRWRnZXM7IHN0cm9rZS13aWR0aDogMjsgfQogICAgICAgICAgICAudGhpbi1saW5lICAgICAgICAgICB7c3Ryb2tlOiAjNjM2MjczOyBzaGFwZS1yZW5kZXJpbmc6IGNyaXNwRWRnZXN9CiAgICAgICAgICAgIC5maWxsZWQgICAgICAgICAgICAgIHtmaWxsOiAjNjM2MjczOyBzdHJva2U6IG5vbmU7fQogICAgICAgICAgICB0ZXh0LnRlcm1pbmFsICAgICAgICB7Zm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgIlNlZ29lIFVJIiwgUm9ib3RvLCBVYnVudHUsIENhbnRhcmVsbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOwogICAgICAgICAgICBmb250LXNpemU6IDEycHg7CiAgICAgICAgICAgIGZpbGw6ICNmZmZmZmY7CiAgICAgICAgICAgIGZvbnQtd2VpZ2h0OiBib2xkOwogICAgICAgICAgICB9CiAgICAgICAgICAgIHRleHQubm9udGVybWluYWwgICAgIHtmb250LWZhbWlseTogLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAiU2Vnb2UgVUkiLCBSb2JvdG8sIFVidW50dSwgQ2FudGFyZWxsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgIGZvbnQtc2l6ZTogMTJweDsKICAgICAgICAgICAgZmlsbDogI2UyODlhNDsKICAgICAgICAgICAgZm9udC13ZWlnaHQ6IG5vcm1hbDsKICAgICAgICAgICAgfQogICAgICAgICAgICB0ZXh0LnJlZ2V4cCAgICAgICAgICB7Zm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgIlNlZ29lIFVJIiwgUm9ib3RvLCBVYnVudHUsIENhbnRhcmVsbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOwogICAgICAgICAgICBmb250LXNpemU6IDEycHg7CiAgICAgICAgICAgIGZpbGw6ICMwMDE0MUY7CiAgICAgICAgICAgIGZvbnQtd2VpZ2h0OiBub3JtYWw7CiAgICAgICAgICAgIH0KICAgICAgICAgICAgcmVjdCwgY2lyY2xlLCBwb2x5Z29uIHtmaWxsOiBub25lOyBzdHJva2U6IG5vbmU7fQogICAgICAgICAgICByZWN0LnRlcm1pbmFsICAgICAgICB7ZmlsbDogbm9uZTsgc3Ryb2tlOiAjYmUyZjViO30KICAgICAgICAgICAgcmVjdC5ub250ZXJtaW5hbCAgICAge2ZpbGw6IHJnYmEoMjU1LDI1NSwyNTUsMC4xKTsgc3Ryb2tlOiBub25lO30KICAgICAgICAgICAgcmVjdC50ZXh0ICAgICAgICAgICAge2ZpbGw6IG5vbmU7IHN0cm9rZTogbm9uZTt9CiAgICAgICAgICAgIHBvbHlnb24ucmVnZXhwICAgICAgIHtmaWxsOiAjQzdFQ0ZGOyBzdHJva2U6ICMwMzhjYmM7fQogICAgICAgIDwvc3R5bGU+CiAgICA8L2RlZnM+CiAgICA8cG9seWdvbiBwb2ludHM9IjkgMTcgMSAxMyAxIDIxIj48L3BvbHlnb24+CiAgICAgICAgIDxwb2x5Z29uIHBvaW50cz0iMTcgMTcgOSAxMyA5IDIxIj48L3BvbHlnb24+CiAgICAgICAgIDxyZWN0IHg9IjMxIiB5PSIzIiB3aWR0aD0iNjQiIGhlaWdodD0iMzIiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8cmVjdCB4PSIyOSIgeT0iMSIgd2lkdGg9IjY0IiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjM5IiB5PSIyMSI+SU5ERVg8L3RleHQ+CiAgICAgICAgIDxyZWN0IHg9IjExNSIgeT0iMyIgd2lkdGg9IjI2IiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iMTEzIiB5PSIxIiB3aWR0aD0iMjYiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iMTIzIiB5PSIyMSI+KDwvdGV4dD48YSB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeGxpbms6aHJlZj0iI2NvbHVtblJlZiIgeGxpbms6dGl0bGU9ImNvbHVtblJlZiI+CiAgICAgICAgICAgIDxyZWN0IHg9IjE2MSIgeT0iMyIgd2lkdGg9Ijg2IiBoZWlnaHQ9IjMyIj48L3JlY3Q+CiAgICAgICAgICAgIDxyZWN0IHg9IjE1OSIgeT0iMSIgd2lkdGg9Ijg2IiBoZWlnaHQ9IjMyIiBjbGFzcz0ibm9udGVybWluYWwiPjwvcmVjdD4KICAgICAgICAgICAgPHRleHQgY2xhc3M9Im5vbnRlcm1pbmFsIiB4PSIxNjkiIHk9IjIxIj5jb2x1bW5SZWY8L3RleHQ+PC9hPjxyZWN0IHg9IjI4NyIgeT0iMzUiIHdpZHRoPSI4OCIgaGVpZ2h0PSIzMiIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDxyZWN0IHg9IjI4NSIgeT0iMzMiIHdpZHRoPSI4OCIgaGVpZ2h0PSIzMiIgY2xhc3M9InRlcm1pbmFsIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHRleHQgY2xhc3M9InRlcm1pbmFsIiB4PSIyOTUiIHk9IjUzIj5DQVBBQ0lUWTwvdGV4dD48YSB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeGxpbms6aHJlZj0iI3ZhbHVlQmxvY2tTaXplIiB4bGluazp0aXRsZT0idmFsdWVCbG9ja1NpemUiPgogICAgICAgICAgICA8cmVjdCB4PSIzOTUiIHk9IjM1IiB3aWR0aD0iMTE0IiBoZWlnaHQ9IjMyIj48L3JlY3Q+CiAgICAgICAgICAgIDxyZWN0IHg9IjM5MyIgeT0iMzMiIHdpZHRoPSIxMTQiIGhlaWdodD0iMzIiIGNsYXNzPSJub250ZXJtaW5hbCI+PC9yZWN0PgogICAgICAgICAgICA8dGV4dCBjbGFzcz0ibm9udGVybWluYWwiIHg9IjQwMyIgeT0iNTMiPnZhbHVlQmxvY2tTaXplPC90ZXh0PjwvYT48cmVjdCB4PSI1NDkiIHk9IjMiIHdpZHRoPSIyNiIgaGVpZ2h0PSIzMiIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDxyZWN0IHg9IjU0NyIgeT0iMSIgd2lkdGg9IjI2IiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjU1NyIgeT0iMjEiPik8L3RleHQ+CiAgICAgICAgIDxwYXRoIGNsYXNzPSJsaW5lIiBkPSJtMTcgMTcgaDIgbTAgMCBoMTAgbTY0IDAgaDEwIG0wIDAgaDEwIG0yNiAwIGgxMCBtMCAwIGgxMCBtODYgMCBoMTAgbTIwIDAgaDEwIG0wIDAgaDIzMiBtLTI2MiAwIGgyMCBtMjQyIDAgaDIwIG0tMjgyIDAgcTEwIDAgMTAgMTAgbTI2MiAwIHEwIC0xMCAxMCAtMTAgbS0yNzIgMTAgdjEyIG0yNjIgMCB2LTEyIG0tMjYyIDEyIHEwIDEwIDEwIDEwIG0yNDIgMCBxMTAgMCAxMCAtMTAgbS0yNTIgMTAgaDEwIG04OCAwIGgxMCBtMCAwIGgxMCBtMTE0IDAgaDEwIG0yMCAtMzIgaDEwIG0yNiAwIGgxMCBtMyAwIGgtMyI+PC9wYXRoPgogICAgICAgICA8cG9seWdvbiBwb2ludHM9IjU5MyAxNyA2MDEgMTMgNjAxIDIxIj48L3BvbHlnb24+CiAgICAgICAgIDxwb2x5Z29uIHBvaW50cz0iNTkzIDE3IDU4NSAxMyA1ODUgMjEiPjwvcG9seWdvbj4KPC9zdmc+)
+
+```prism-code
+CREATE TABLE trades (  
+  timestamp TIMESTAMP,  
+  symbol SYMBOL,  
+  price DOUBLE,  
+  amount DOUBLE  
+), INDEX(symbol) TIMESTAMP(timestamp);
+```
+
+warning
+
+* The **index capacity** and
+  [**symbol capacity**](/docs/concepts/symbol/) are different
+  settings.
+* The index capacity value should not be changed, unless a user is aware of all
+  the implications. :::
+
+See the [Index concept](/docs/concepts/deep-dive/indexes/#how-indexes-work) for more
+information about indexes.
+
+## OWNED BY[​](#owned-by "Direct link to OWNED BY")
+
+*Enterprise only.*
+
+When a user creates a new table, they automatically get all table level
+permissions with the `GRANT` option for that table. However, if the `OWNED BY`
+clause is used, the permissions instead go to the user, group, or service
+account named in that clause.
+
+The `OWNED BY` clause cannot be omitted if the table is created by an external
+user, because permissions cannot be granted to them.
+
+```prism-code
+CREATE GROUP analysts;  
+CREATE TABLE trades (  
+  timestamp TIMESTAMP,  
+  symbol SYMBOL,  
+  price DOUBLE,  
+  amount DOUBLE  
+) TIMESTAMP(timestamp)  
+PARTITION BY DAY  
+OWNED BY analysts;
+```
+
+## CREATE TABLE AS[​](#create-table-as "Direct link to CREATE TABLE AS")
+
+Creates a table, using the results from the `SELECT` statement to determine the
+column names and data types.
+
+Create table as select
+
+```prism-code
+CREATE TABLE new_trades AS (  
+  SELECT *  
+  FROM  
+    trades  
+) TIMESTAMP(timestamp);
+```
+
+We can use keywords such as `IF NOT EXISTS`, `PARTITION BY`..., as needed for
+the new table. The data type of a column can be changed:
+
+Clone an existing wide table and change type of cherry-picked columns
+
+```prism-code
+CREATE TABLE new_trades AS (  
+  SELECT *  
+  FROM  
+    trades  
+), CAST(price AS LONG) TIMESTAMP(timestamp);
+```
+
+Here we changed type of `price` to `LONG`.
+
+note
+
+Since QuestDB v7.4.0, the default behaviour for `CREATE TABLE AS` has been
+changed.
+
+Previously, the table would be created atomically. For large tables, this
+requires a significant amount of RAM, and can cause errors if the database runs
+out of memory.
+
+By default, this will be performed in batches. If the query fails, partial data
+may be inserted.
+
+If this is a problem, it is recommended to use the ATOMIC keyword
+(`CREATE ATOMIC TABLE`). Alternatively, enabling deduplication on the table will
+allow you to perform an idempotent insert to re-insert any missed data.
+
+### ATOMIC[​](#atomic "Direct link to ATOMIC")
+
+Tables can be created atomically, which first loads all of the data and then
+commits in a single transaction.
+
+This requires the data to be available in memory all at once, so for large
+inserts, this may have performance issues.
+
+To force this behaviour, one can use the `ATOMIC` keyword:
+
+Create atomic table as select
+
+```prism-code
+CREATE ATOMIC TABLE new_trades AS (  
+  SELECT *  
+  FROM  
+    trades  
+) TIMESTAMP(timestamp);
+```
+
+### BATCH[​](#batch "Direct link to BATCH")
+
+By default, tables will be created with data inserted in batches.
+
+The size of the batches can be configured:
+
+* globally, by setting the `cairo.sql.create.table.model.batch.size`
+  configuration option in `server.conf`.
+* locally, by using the `BATCH` keyword in the `CREATE TABLE` statement.
+
+Create batched table as select
+
+```prism-code
+CREATE BATCH 4096 TABLE new_trades AS (  
+  SELECT *  
+  FROM  
+    trades  
+) TIMESTAMP(timestamp);
+```
+
+One can also specify the out-of-order commit lag for these batched writes, using
+the o3MaxLag option:
+
+Create table as select with batching and O3 lag
+
+```prism-code
+CREATE BATCH 4096 o3MaxLag 1s TABLE new_trades AS (  
+  SELECT * FROM trades  
+) TIMESTAMP(timestamp);
+```
+
+### Turning unordered data into ordered data[​](#turning-unordered-data-into-ordered-data "Direct link to Turning unordered data into ordered data")
+
+As an additional example, let's assume we imported a text file into the table
+`trades_unordered` and now we want to turn this data into time series
+through ordering trades by `timestamp`, assign dedicated timestamp and
+partition by month:
+
+Create table as select with data manipulation
+
+```prism-code
+CREATE TABLE trades AS (  
+  SELECT * FROM trades_unordered ORDER BY timestamp  
+) TIMESTAMP(timestamp)  
+PARTITION BY MONTH;
+```
+
+## CREATE TABLE LIKE[​](#create-table-like "Direct link to CREATE TABLE LIKE")
+
+The `LIKE` keyword clones the table schema of an existing table or materialized
+view without copying the data. Table settings and parameters such as designated
+timestamp and symbol column indexes will be cloned, too.
+
+Create table like
+
+```prism-code
+CREATE TABLE new_table (LIKE my_table);
+```
+
+## WITH table parameter[​](#with-table-parameter "Direct link to WITH table parameter")
+
+![Flow chart showing the syntax of keyword to specify WITH table parameter](data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NjMiIGhlaWdodD0iMzciPgogICAgPGRlZnM+CiAgICAgICAgPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KICAgICAgICAgICAgQG5hbWVzcGFjZSAiaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciOwogICAgICAgICAgICAubGluZSAgICAgICAgICAgICAgICAge2ZpbGw6IG5vbmU7IHN0cm9rZTogIzYzNjI3Mzt9CiAgICAgICAgICAgIC5ib2xkLWxpbmUgICAgICAgICAgICB7c3Ryb2tlOiAjNjM2MjczOyBzaGFwZS1yZW5kZXJpbmc6IGNyaXNwRWRnZXM7IHN0cm9rZS13aWR0aDogMjsgfQogICAgICAgICAgICAudGhpbi1saW5lICAgICAgICAgICB7c3Ryb2tlOiAjNjM2MjczOyBzaGFwZS1yZW5kZXJpbmc6IGNyaXNwRWRnZXN9CiAgICAgICAgICAgIC5maWxsZWQgICAgICAgICAgICAgIHtmaWxsOiAjNjM2MjczOyBzdHJva2U6IG5vbmU7fQogICAgICAgICAgICB0ZXh0LnRlcm1pbmFsICAgICAgICB7Zm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgIlNlZ29lIFVJIiwgUm9ib3RvLCBVYnVudHUsIENhbnRhcmVsbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOwogICAgICAgICAgICBmb250LXNpemU6IDEycHg7CiAgICAgICAgICAgIGZpbGw6ICNmZmZmZmY7CiAgICAgICAgICAgIGZvbnQtd2VpZ2h0OiBib2xkOwogICAgICAgICAgICB9CiAgICAgICAgICAgIHRleHQubm9udGVybWluYWwgICAgIHtmb250LWZhbWlseTogLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAiU2Vnb2UgVUkiLCBSb2JvdG8sIFVidW50dSwgQ2FudGFyZWxsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgIGZvbnQtc2l6ZTogMTJweDsKICAgICAgICAgICAgZmlsbDogI2UyODlhNDsKICAgICAgICAgICAgZm9udC13ZWlnaHQ6IG5vcm1hbDsKICAgICAgICAgICAgfQogICAgICAgICAgICB0ZXh0LnJlZ2V4cCAgICAgICAgICB7Zm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgIlNlZ29lIFVJIiwgUm9ib3RvLCBVYnVudHUsIENhbnRhcmVsbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOwogICAgICAgICAgICBmb250LXNpemU6IDEycHg7CiAgICAgICAgICAgIGZpbGw6ICMwMDE0MUY7CiAgICAgICAgICAgIGZvbnQtd2VpZ2h0OiBub3JtYWw7CiAgICAgICAgICAgIH0KICAgICAgICAgICAgcmVjdCwgY2lyY2xlLCBwb2x5Z29uIHtmaWxsOiBub25lOyBzdHJva2U6IG5vbmU7fQogICAgICAgICAgICByZWN0LnRlcm1pbmFsICAgICAgICB7ZmlsbDogbm9uZTsgc3Ryb2tlOiAjYmUyZjViO30KICAgICAgICAgICAgcmVjdC5ub250ZXJtaW5hbCAgICAge2ZpbGw6IHJnYmEoMjU1LDI1NSwyNTUsMC4xKTsgc3Ryb2tlOiBub25lO30KICAgICAgICAgICAgcmVjdC50ZXh0ICAgICAgICAgICAge2ZpbGw6IG5vbmU7IHN0cm9rZTogbm9uZTt9CiAgICAgICAgICAgIHBvbHlnb24ucmVnZXhwICAgICAgIHtmaWxsOiAjQzdFQ0ZGOyBzdHJva2U6ICMwMzhjYmM7fQogICAgICAgIDwvc3R5bGU+CiAgICA8L2RlZnM+CiAgICA8cG9seWdvbiBwb2ludHM9IjkgMTcgMSAxMyAxIDIxIj48L3BvbHlnb24+CiAgICAgICAgIDxwb2x5Z29uIHBvaW50cz0iMTcgMTcgOSAxMyA5IDIxIj48L3BvbHlnb24+CiAgICAgICAgIDxyZWN0IHg9IjMxIiB5PSIzIiB3aWR0aD0iNTgiIGhlaWdodD0iMzIiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8cmVjdCB4PSIyOSIgeT0iMSIgd2lkdGg9IjU4IiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjM5IiB5PSIyMSI+V0lUSDwvdGV4dD4KICAgICAgICAgPHJlY3QgeD0iMTA5IiB5PSIzIiB3aWR0aD0iMTc2IiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iMTA3IiB5PSIxIiB3aWR0aD0iMTc2IiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjExNyIgeT0iMjEiPm1heFVuY29tbWl0dGVkUm93czwvdGV4dD4KICAgICAgICAgPHJlY3QgeD0iMzA1IiB5PSIzIiB3aWR0aD0iMzAiIGhlaWdodD0iMzIiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8cmVjdCB4PSIzMDMiIHk9IjEiIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMiIgY2xhc3M9InRlcm1pbmFsIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHRleHQgY2xhc3M9InRlcm1pbmFsIiB4PSIzMTMiIHk9IjIxIj49PC90ZXh0PjxhIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bGluazpocmVmPSIjcm93Q291bnQiIHhsaW5rOnRpdGxlPSJyb3dDb3VudCI+CiAgICAgICAgICAgIDxyZWN0IHg9IjM1NSIgeT0iMyIgd2lkdGg9IjgwIiBoZWlnaHQ9IjMyIj48L3JlY3Q+CiAgICAgICAgICAgIDxyZWN0IHg9IjM1MyIgeT0iMSIgd2lkdGg9IjgwIiBoZWlnaHQ9IjMyIiBjbGFzcz0ibm9udGVybWluYWwiPjwvcmVjdD4KICAgICAgICAgICAgPHRleHQgY2xhc3M9Im5vbnRlcm1pbmFsIiB4PSIzNjMiIHk9IjIxIj5yb3dDb3VudDwvdGV4dD48L2E+PHBhdGggY2xhc3M9ImxpbmUiIGQ9Im0xNyAxNyBoMiBtMCAwIGgxMCBtNTggMCBoMTAgbTAgMCBoMTAgbTE3NiAwIGgxMCBtMCAwIGgxMCBtMzAgMCBoMTAgbTAgMCBoMTAgbTgwIDAgaDEwIG0zIDAgaC0zIj48L3BhdGg+CiAgICAgICAgIDxwb2x5Z29uIHBvaW50cz0iNDUzIDE3IDQ2MSAxMyA0NjEgMjEiPjwvcG9seWdvbj4KICAgICAgICAgPHBvbHlnb24gcG9pbnRzPSI0NTMgMTcgNDQ1IDEzIDQ0NSAyMSI+PC9wb2x5Z29uPgo8L3N2Zz4=)
+
+The parameter influences how often commits of out-of-order data occur. It may be
+set during table creation using the `WITH` keyword.
+
+`maxUncommittedRows` - defines the maximum number of uncommitted rows per-table
+to keep in memory before triggering a commit for a specific table.
+
+The purpose of specifying maximum uncommitted rows per table is to reduce the
+occurrences of resource-intensive commits when ingesting out-of-order data.
+
+The global setting for the same parameter is `cairo.max.uncommitted.rows`.
+
+Setting out-of-order table parameters via SQL
+
+```prism-code
+CREATE TABLE trades (  
+  timestamp TIMESTAMP,  
+  symbol SYMBOL,  
+  price DOUBLE,  
+  amount DOUBLE  
+) TIMESTAMP(timestamp)  
+PARTITION BY DAY  
+WITH maxUncommittedRows=250000;
+```
+
+Checking the values per-table may be done using the `tables()` function:
+
+List all tables
+
+```prism-code
+SELECT id, table_name, maxUncommittedRows FROM tables();
+```
+
+| id | name | maxUncommittedRows |
+| --- | --- | --- |
+| 1 | trades | 250000 |
+| 2 | sample\_table | 50000 |
+
+## Table target volume[​](#table-target-volume "Direct link to Table target volume")
+
+The `IN VOLUME` clause is used to create a table in a different volume than the
+standard. The table is created in the specified target volume, and a symbolic
+link is created in the table's standard volume to point to it.
+
+![Flow chart showing the syntax of keywords to specify a table target volume](data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MjUiIGhlaWdodD0iNjkiPgogICAgPGRlZnM+CiAgICAgICAgPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KICAgICAgICAgICAgQG5hbWVzcGFjZSAiaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciOwogICAgICAgICAgICAubGluZSAgICAgICAgICAgICAgICAge2ZpbGw6IG5vbmU7IHN0cm9rZTogIzYzNjI3Mzt9CiAgICAgICAgICAgIC5ib2xkLWxpbmUgICAgICAgICAgICB7c3Ryb2tlOiAjNjM2MjczOyBzaGFwZS1yZW5kZXJpbmc6IGNyaXNwRWRnZXM7IHN0cm9rZS13aWR0aDogMjsgfQogICAgICAgICAgICAudGhpbi1saW5lICAgICAgICAgICB7c3Ryb2tlOiAjNjM2MjczOyBzaGFwZS1yZW5kZXJpbmc6IGNyaXNwRWRnZXN9CiAgICAgICAgICAgIC5maWxsZWQgICAgICAgICAgICAgIHtmaWxsOiAjNjM2MjczOyBzdHJva2U6IG5vbmU7fQogICAgICAgICAgICB0ZXh0LnRlcm1pbmFsICAgICAgICB7Zm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgIlNlZ29lIFVJIiwgUm9ib3RvLCBVYnVudHUsIENhbnRhcmVsbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOwogICAgICAgICAgICBmb250LXNpemU6IDEycHg7CiAgICAgICAgICAgIGZpbGw6ICNmZmZmZmY7CiAgICAgICAgICAgIGZvbnQtd2VpZ2h0OiBib2xkOwogICAgICAgICAgICB9CiAgICAgICAgICAgIHRleHQubm9udGVybWluYWwgICAgIHtmb250LWZhbWlseTogLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAiU2Vnb2UgVUkiLCBSb2JvdG8sIFVidW50dSwgQ2FudGFyZWxsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgIGZvbnQtc2l6ZTogMTJweDsKICAgICAgICAgICAgZmlsbDogI2UyODlhNDsKICAgICAgICAgICAgZm9udC13ZWlnaHQ6IG5vcm1hbDsKICAgICAgICAgICAgfQogICAgICAgICAgICB0ZXh0LnJlZ2V4cCAgICAgICAgICB7Zm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgIlNlZ29lIFVJIiwgUm9ib3RvLCBVYnVudHUsIENhbnRhcmVsbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOwogICAgICAgICAgICBmb250LXNpemU6IDEycHg7CiAgICAgICAgICAgIGZpbGw6ICMwMDE0MUY7CiAgICAgICAgICAgIGZvbnQtd2VpZ2h0OiBub3JtYWw7CiAgICAgICAgICAgIH0KICAgICAgICAgICAgcmVjdCwgY2lyY2xlLCBwb2x5Z29uIHtmaWxsOiBub25lOyBzdHJva2U6IG5vbmU7fQogICAgICAgICAgICByZWN0LnRlcm1pbmFsICAgICAgICB7ZmlsbDogbm9uZTsgc3Ryb2tlOiAjYmUyZjViO30KICAgICAgICAgICAgcmVjdC5ub250ZXJtaW5hbCAgICAge2ZpbGw6IHJnYmEoMjU1LDI1NSwyNTUsMC4xKTsgc3Ryb2tlOiBub25lO30KICAgICAgICAgICAgcmVjdC50ZXh0ICAgICAgICAgICAge2ZpbGw6IG5vbmU7IHN0cm9rZTogbm9uZTt9CiAgICAgICAgICAgIHBvbHlnb24ucmVnZXhwICAgICAgIHtmaWxsOiAjQzdFQ0ZGOyBzdHJva2U6ICMwMzhjYmM7fQogICAgICAgIDwvc3R5bGU+CiAgICA8L2RlZnM+CiAgICA8cG9seWdvbiBwb2ludHM9IjkgMTcgMSAxMyAxIDIxIj48L3BvbHlnb24+CiAgICAgICAgIDxwb2x5Z29uIHBvaW50cz0iMTcgMTcgOSAxMyA5IDIxIj48L3BvbHlnb24+CiAgICAgICAgIDxyZWN0IHg9IjUxIiB5PSIzNSIgd2lkdGg9IjI0IiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iNDkiIHk9IjMzIiB3aWR0aD0iMjQiIGhlaWdodD0iMzIiIGNsYXNzPSJ0ZXJtaW5hbCIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDx0ZXh0IGNsYXNzPSJ0ZXJtaW5hbCIgeD0iNTkiIHk9IjUzIj4sPC90ZXh0PgogICAgICAgICA8cmVjdCB4PSIxMTUiIHk9IjMiIHdpZHRoPSIzNiIgaGVpZ2h0PSIzMiIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDxyZWN0IHg9IjExMyIgeT0iMSIgd2lkdGg9IjM2IiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjEyMyIgeT0iMjEiPklOPC90ZXh0PgogICAgICAgICA8cmVjdCB4PSIxNzEiIHk9IjMiIHdpZHRoPSI3NiIgaGVpZ2h0PSIzMiIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDxyZWN0IHg9IjE2OSIgeT0iMSIgd2lkdGg9Ijc2IiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjE3OSIgeT0iMjEiPlZPTFVNRTwvdGV4dD4KICAgICAgICAgPHJlY3QgeD0iMjg3IiB5PSIzNSIgd2lkdGg9IjI0IiBoZWlnaHQ9IjMyIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHJlY3QgeD0iMjg1IiB5PSIzMyIgd2lkdGg9IjI0IiBoZWlnaHQ9IjMyIiBjbGFzcz0idGVybWluYWwiIHJ4PSIxMCI+PC9yZWN0PgogICAgICAgICA8dGV4dCBjbGFzcz0idGVybWluYWwiIHg9IjI5NSIgeT0iNTMiPic8L3RleHQ+PGEgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhsaW5rOmhyZWY9IiNzZWNvbmRhcnlWb2x1bWVBbGlhcyIgeGxpbms6dGl0bGU9InNlY29uZGFyeVZvbHVtZUFsaWFzIj4KICAgICAgICAgICAgPHJlY3QgeD0iMzUxIiB5PSIzIiB3aWR0aD0iMTYyIiBoZWlnaHQ9IjMyIj48L3JlY3Q+CiAgICAgICAgICAgIDxyZWN0IHg9IjM0OSIgeT0iMSIgd2lkdGg9IjE2MiIgaGVpZ2h0PSIzMiIgY2xhc3M9Im5vbnRlcm1pbmFsIj48L3JlY3Q+CiAgICAgICAgICAgIDx0ZXh0IGNsYXNzPSJub250ZXJtaW5hbCIgeD0iMzU5IiB5PSIyMSI+c2Vjb25kYXJ5Vm9sdW1lQWxpYXM8L3RleHQ+PC9hPjxyZWN0IHg9IjU1MyIgeT0iMzUiIHdpZHRoPSIyNCIgaGVpZ2h0PSIzMiIgcng9IjEwIj48L3JlY3Q+CiAgICAgICAgIDxyZWN0IHg9IjU1MSIgeT0iMzMiIHdpZHRoPSIyNCIgaGVpZ2h0PSIzMiIgY2xhc3M9InRlcm1pbmFsIiByeD0iMTAiPjwvcmVjdD4KICAgICAgICAgPHRleHQgY2xhc3M9InRlcm1pbmFsIiB4PSI1NjEiIHk9IjUzIj4nPC90ZXh0PgogICAgICAgICA8cGF0aCBjbGFzcz0ibGluZSIgZD0ibTE3IDE3IGgyIG0yMCAwIGgxMCBtMCAwIGgzNCBtLTY0IDAgaDIwIG00NCAwIGgyMCBtLTg0IDAgcTEwIDAgMTAgMTAgbTY0IDAgcTAgLTEwIDEwIC0xMCBtLTc0IDEwIHYxMiBtNjQgMCB2LTEyIG0tNjQgMTIgcTAgMTAgMTAgMTAgbTQ0IDAgcTEwIDAgMTAgLTEwIG0tNTQgMTAgaDEwIG0yNCAwIGgxMCBtMjAgLTMyIGgxMCBtMzYgMCBoMTAgbTAgMCBoMTAgbTc2IDAgaDEwIG0yMCAwIGgxMCBtMCAwIGgzNCBtLTY0IDAgaDIwIG00NCAwIGgyMCBtLTg0IDAgcTEwIDAgMTAgMTAgbTY0IDAgcTAgLTEwIDEwIC0xMCBtLTc0IDEwIHYxMiBtNjQgMCB2LTEyIG0tNjQgMTIgcTAgMTAgMTAgMTAgbTQ0IDAgcTEwIDAgMTAgLTEwIG0tNTQgMTAgaDEwIG0yNCAwIGgxMCBtMjAgLTMyIGgxMCBtMTYyIDAgaDEwIG0yMCAwIGgxMCBtMCAwIGgzNCBtLTY0IDAgaDIwIG00NCAwIGgyMCBtLTg0IDAgcTEwIDAgMTAgMTAgbTY0IDAgcTAgLTEwIDEwIC0xMCBtLTc0IDEwIHYxMiBtNjQgMCB2LTEyIG0tNjQgMTIgcTAgMTAgMTAgMTAgbTQ0IDAgcTEwIDAgMTAgLTEwIG0tNTQgMTAgaDEwIG0yNCAwIGgxMCBtMjMgLTMyIGgtMyI+PC9wYXRoPgogICAgICAgICA8cG9seWdvbiBwb2ludHM9IjYxNSAxNyA2MjMgMTMgNjIzIDIxIj48L3BvbHlnb24+CiAgICAgICAgIDxwb2x5Z29uIHBvaW50cz0iNjE1IDE3IDYwNyAxMyA2MDcgMjEiPjwvcG9seWdvbj4KPC9zdmc+)
+
+The use of the comma (`,`) depends on the existence of the `WITH` clause:
+
+* If the `WITH` clause is present, a comma is mandatory before `IN VOLUME`:
+
+  ```prism-code
+  CREATE TABLE trades (  
+    timestamp TIMESTAMP,  
+    symbol SYMBOL,  
+    price DOUBLE,  
+    amount DOUBLE  
+  ) TIMESTAMP(timestamp)  
+  PARTITION BY DAY  
+  WITH maxUncommittedRows=250000,  
+  IN VOLUME SECONDARY_VOLUME;
+  ```
+* If no `WITH` clause is used, the comma must not be added for the `IN VOLUME`
+  segment:
+
+  ```prism-code
+  CREATE TABLE trades (  
+    timestamp TIMESTAMP,  
+    symbol SYMBOL,  
+    price DOUBLE,  
+    amount DOUBLE  
+  ) TIMESTAMP(timestamp)  
+  PARTITION BY DAY  
+  IN VOLUME SECONDARY_VOLUME;
+  ```
+
+The use of quotation marks (`'`) depends on the volume alias:
+
+* If the alias contains spaces, the quotation marks are required:
+
+  ```prism-code
+  CREATE TABLE trades (  
+    timestamp TIMESTAMP,  
+    symbol SYMBOL,  
+    price DOUBLE,  
+    amount DOUBLE  
+  ) TIMESTAMP(timestamp)  
+  PARTITION BY DAY  
+  IN VOLUME 'SECONDARY_VOLUME';
+  ```
+* If the alias does not contain spaces, no quotation mark is necessary.
+
+### Description[​](#description "Direct link to Description")
+
+The table behaves the same way as if it had been created in the standard
+(default) volume, with the exception that
+[`DROP TABLE`](/docs/query/sql/drop/) removes the symbolic link from the
+standard volume but the content pointed to is left intact in its volume. A table
+using the same name in the same volume cannot be created again as a result, it
+requires manual intervention to either remove or rename the table's directory in
+its volume.
+
+### Configuration[​](#configuration "Direct link to Configuration")
+
+The secondary table target volume is defined by `cairo.volumes` in
+[`server.conf`](/docs/configuration/overview/#cairo-engine). The default setting contains
+an empty list, which means the feature is not enabled.
+
+To enable the feature, define as many volume pairs as you need, with syntax
+*alias -> volume-root-path*, and separate different pairs with a comma. For
+example:
+
+```prism-code
+cairo.volumes=SECONDARY_VOLUME -> /Users/quest/mounts/secondary, BIN -> /var/bin
+```
+
+Additional notes about defining the alias and volume root paths:
+
+* Aliases are case-insensitive.
+* Volume root paths must be valid and exist at bootstrap time and at the time
+  when the table is created.
+* Aliases and/or volume root paths can be single quoted, it is not required.

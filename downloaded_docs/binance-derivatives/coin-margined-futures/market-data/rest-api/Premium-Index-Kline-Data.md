@@ -1,0 +1,55 @@
+On this page
+
+# Premium index Kline Data
+
+## API Description[​](/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data#api-description "Direct link to API Description")
+
+Premium index kline bars of a symbol. Klines are uniquely identified by their open time.
+
+## HTTP Request[​](/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data#http-request "Direct link to HTTP Request")
+
+GET `/dapi/v1/premiumIndexKlines`
+
+## Request Weight[​](/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data#request-weight "Direct link to Request Weight")
+
+based on parameter `LIMIT`
+
+| LIMIT | weight |
+| --- | --- |
+| [1,100) | 1 |
+| [100, 500) | 2 |
+| [500, 1000] | 5 |
+| > 1000 | 10 |
+
+## Request Parameters[​](/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data#request-parameters "Direct link to Request Parameters")
+
+| Name | Type | Mandatory | Description |
+| --- | --- | --- | --- |
+| symbol | STRING | YES |  |
+| interval | ENUM | YES |  |
+| startTime | LONG | NO |  |
+| endTime | LONG | NO |  |
+| limit | INT | NO | Default 500; max 1500. |
+
+> * If startTime and endTime are not sent, the most recent klines are returned.
+
+## Response Example[​](/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data#response-example "Direct link to Response Example")
+
+```prism-code
+[  
+  [  
+    1691603820000,          // Open time  
+    "-0.00042931",          // Open  
+    "-0.00023641",          // High  
+    "-0.00059406",          // Low  
+    "-0.00043659",          // Close  
+    "0",                    // Ignore  
+    1691603879999,          // Close time  
+    "0",                    // Ignore  
+    12,                     // Ignore  
+    "0",                    // Ignore  
+    "0",                    // Ignore  
+    "0"                     // Ignore  
+  ]  
+]
+```

@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HFT Platform - Binance Market Data</title>
+    <script src="https://unpkg.com/lightweight-charts@5.1/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #131722;
+            color: #d1d4dc;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #chart-container {
+            flex: 1;
+            height: 100%;
+            position: relative;
+        }
+
+        #orderbook-container {
+            width: 320px;
+            min-width: 280px;
+            padding: 12px;
+            background: #1e222d;
+            border-left: 1px solid #2a2e39;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .controls {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            z-index: 100;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .controls select,
+        .controls button {
+            padding: 8px 14px;
+            background: #2a2e39;
+            border: 1px solid #363a45;
+            color: #d1d4dc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .controls select:hover,
+        .controls button:hover {
+            background: #363a45;
+            border-color: #4a4e59;
+        }
+
+        .controls select:focus,
+        .controls button:focus {
+            outline: none;
+            border-color: #2962ff;
+        }
+
+        .orderbook-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .orderbook-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef5350;
+        }
+
+        .status-indicator.connected {
+            background: #26a69a;
+        }
+
+        .orderbook-columns {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #363a45;
+            font-size: 11px;
+            color: #787b86;
+            text-transform: uppercase;
+        }
+
+        .orderbook-section {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .orderbook-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            font-size: 12px;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .orderbook-row.bid .price { color: #26a69a; }
+        .orderbook-row.ask .price { color: #ef5350; }
+        .orderbook-row .size { color: #787b86; }
+
+        .spread-bar {
+            text-align: center;
+            padding: 10px;
+            background: #2a2e39;
+            margin: 8px 0;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .spread-bar .spread-value {
+            color: #d1d4dc;
+            font-weight: 500;
+        }
+
+        .spread-bar .spread-percent {
+            color: #787b86;
+            margin-left: 8px;
+        }
+
+        #asks-container {
+            display: flex;
+            flex-direction: column-reverse;
+        }
+
+        .ticker-info {
+            padding: 12px;
+            background: #2a2e39;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+
+        .ticker-info .price {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .ticker-info .change {
+            font-size: 13px;
+        }
+
+        .ticker-info .change.positive { color: #26a69a; }
+        .ticker-info .change.negative { color: #ef5350; }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #787b86;
+        }
+
+        /* Chart Legend - TradingView style */
+        .chart-legend {
+            position: absolute;
+            top: 60px;
+            left: 12px;
+            background: rgba(30, 34, 45, 0.9);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            z-index: 100;
+            pointer-events: none;
+            min-width: 200px;
+        }
+
+        .legend-symbol {
+            font-size: 14px;
+            font-weight: 600;
+            color: #d1d4dc;
+            margin-bottom: 4px;
+        }
+
+        .legend-ohlc {
+            display: flex;
+            gap: 12px;
+            color: #787b86;
+            margin-bottom: 4px;
+        }
+
+        .legend-ohlc span {
+            white-space: nowrap;
+        }
+
+        .legend-change {
+            font-weight: 500;
+        }
+
+        .legend-change.positive { color: #26a69a; }
+        .legend-change.negative { color: #ef5350; }
+
+        .legend-label {
+            color: #787b86;
+            margin-right: 2px;
+        }
+
+        .legend-value {
+            color: #d1d4dc;
+            margin-right: 10px;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .legend-volume {
+            color: #787b86;
+            font-size: 11px;
+        }
+
+        .legend-indicators {
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1px solid #363a45;
+        }
+
+        .legend-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 2px 0;
+        }
+
+        .legend-indicator-color {
+            width: 10px;
+            height: 2px;
+            border-radius: 1px;
+        }
+
+        /* Chart Tooltip */
+        .chart-tooltip {
+            position: absolute;
+            display: none;
+            padding: 10px 14px;
+            background: rgba(30, 34, 45, 0.95);
+            border: 1px solid #363a45;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #d1d4dc;
+            pointer-events: none;
+            z-index: 1000;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .tooltip-date {
+            color: #787b86;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+
+        .tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin: 2px 0;
+        }
+
+        .tooltip-label {
+            color: #787b86;
+        }
+
+        .tooltip-value {
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .tooltip-change {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #363a45;
+        }
+
+        .tooltip-change.positive { color: #26a69a; }
+        .tooltip-change.negative { color: #ef5350; }
+
+        /* Indicator Toggle Buttons */
+        .controls .indicator-btn {
+            font-size: 11px;
+            padding: 6px 10px;
+        }
+
+        .controls .indicator-btn.active {
+            background: #2962ff;
+            border-color: #2962ff;
+        }
+
+        .controls .separator {
+            width: 1px;
+            height: 24px;
+            background: #363a45;
+            margin: 0 4px;
+            align-self: center;
+        }
+
+        /* Scale mode select */
+        .controls select.scale-select {
+            width: 80px;
+        }
+
+        /* Chart type buttons - TradingView style */
+        .chart-type-group {
+            display: flex;
+            gap: 2px;
+            background: #1e222d;
+            border-radius: 4px;
+            padding: 2px;
+        }
+
+        .chart-type-btn {
+            padding: 6px 8px;
+            background: transparent;
+            border: none;
+            color: #787b86;
+            cursor: pointer;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .chart-type-btn:hover {
+            background: #2a2e39;
+            color: #d1d4dc;
+        }
+
+        .chart-type-btn.active {
+            background: #2962ff;
+            color: white;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #orderbook-container {
+                display: none;
+            }
+
+            .controls {
+                top: 8px;
+                left: 8px;
+                right: 8px;
+            }
+
+            .controls select,
+            .controls button {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            .chart-legend {
+                top: 50px;
+                font-size: 10px;
+                min-width: 160px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .controls .indicator-btn {
+                display: none;
+            }
+
+            .controls .separator {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <select id="symbol-select">
+            <option value="BTCUSDT">BTC/USDT</option>
+            <option value="ETHUSDT">ETH/USDT</option>
+        </select>
+        <select id="interval-select">
+            <option value="1m">1m</option>
+            <option value="5m">5m</option>
+            <option value="15m">15m</option>
+            <option value="1h">1h</option>
+            <option value="1d">1D</option>
+        </select>
+        <button id="go-realtime">Go Live</button>
+        <div class="separator"></div>
+        <div class="chart-type-group">
+            <button id="chart-candles" class="chart-type-btn active" title="Candles">
+                <svg width="16" height="16" viewBox="0 0 16 16"><rect x="7" y="1" width="2" height="14" fill="currentColor"/><rect x="5" y="4" width="6" height="8" fill="currentColor"/></svg>
+            </button>
+            <button id="chart-bars" class="chart-type-btn" title="Bars">
+                <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 2v12M4 5H2M4 11H6M10 4v8M10 4H8M10 10H12" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            </button>
+            <button id="chart-line" class="chart-type-btn" title="Line">
+                <svg width="16" height="16" viewBox="0 0 16 16"><path d="M1 12L5 6L9 9L15 3" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            </button>
+            <button id="chart-area" class="chart-type-btn" title="Area">
+                <svg width="16" height="16" viewBox="0 0 16 16"><path d="M1 12L5 6L9 9L15 3V14H1Z" fill="currentColor" opacity="0.3"/><path d="M1 12L5 6L9 9L15 3" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            </button>
+            <button id="chart-baseline" class="chart-type-btn" title="Baseline">
+                <svg width="16" height="16" viewBox="0 0 16 16"><line x1="1" y1="8" x2="15" y2="8" stroke="currentColor" stroke-dasharray="2 2"/><path d="M1 10L5 6L9 9L15 5" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            </button>
+        </div>
+        <div class="separator"></div>
+        <button id="toggle-vol" class="indicator-btn active" title="Volume">Vol</button>
+        <button id="toggle-sma20" class="indicator-btn" title="SMA 20">MA20</button>
+        <button id="toggle-sma50" class="indicator-btn" title="SMA 50">MA50</button>
+        <button id="toggle-ema" class="indicator-btn" title="EMA 12/26">EMA</button>
+        <button id="toggle-bb" class="indicator-btn" title="Bollinger Bands">BB</button>
+        <div class="separator"></div>
+        <select id="scale-mode" class="scale-select" title="Price Scale Mode">
+            <option value="0">Normal</option>
+            <option value="1">Log</option>
+            <option value="2">%</option>
+            <option value="3">Index</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <div id="chart-container">
+            <div class="loading" id="chart-loading">Loading chart...</div>
+            <div id="chart-legend" class="chart-legend" style="display: none;">
+                <div class="legend-symbol" id="legend-symbol">BTCUSDT</div>
+                <div class="legend-ohlc">
+                    <span>O: <span id="legend-open">--</span></span>
+                    <span>H: <span id="legend-high">--</span></span>
+                    <span>L: <span id="legend-low">--</span></span>
+                    <span>C: <span id="legend-close">--</span></span>
+                </div>
+                <div class="legend-ohlc">
+                    <span>Vol: <span id="legend-volume">--</span></span>
+                    <span class="legend-change" id="legend-change">--</span>
+                </div>
+                <div class="legend-indicators" id="legend-indicators"></div>
+            </div>
+            <div id="chart-tooltip" class="chart-tooltip"></div>
+        </div>
+
+        <div id="orderbook-container">
+            <div class="orderbook-header">
+                <h3>Order Book</h3>
+                <div class="status-indicator" id="depth-status"></div>
+            </div>
+
+            <div class="ticker-info">
+                <div class="price" id="ticker-price">--</div>
+                <div class="change" id="ticker-change">--</div>
+            </div>
+
+            <div class="orderbook-columns">
+                <span>Price</span>
+                <span>Size</span>
+            </div>
+
+            <div class="orderbook-section">
+                <div id="asks-container"></div>
+            </div>
+
+            <div class="spread-bar">
+                <span>Spread: </span>
+                <span class="spread-value" id="spread-value">--</span>
+                <span class="spread-percent" id="spread-percent"></span>
+            </div>
+
+            <div class="orderbook-section">
+                <div id="bids-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="chart.js"></script>
+    <script src="orderbook.js"></script>
+    <script>
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const symbol = document.getElementById('symbol-select').value;
+            const interval = document.getElementById('interval-select').value;
+
+            // Initialize chart
+            window.chartManager = new ChartManager('chart-container');
+            chartManager.switchSymbol(symbol, interval);
+
+            // Initialize orderbook
+            window.orderbookManager = new OrderbookManager();
+            orderbookManager.switchSymbol(symbol);
+
+            // Symbol/Interval event handlers
+            document.getElementById('symbol-select').addEventListener('change', (e) => {
+                const sym = e.target.value;
+                const int = document.getElementById('interval-select').value;
+                chartManager.switchSymbol(sym, int);
+                orderbookManager.switchSymbol(sym);
+            });
+
+            document.getElementById('interval-select').addEventListener('change', (e) => {
+                const int = e.target.value;
+                const sym = document.getElementById('symbol-select').value;
+                chartManager.switchSymbol(sym, int);
+            });
+
+            document.getElementById('go-realtime').addEventListener('click', () => {
+                chartManager.scrollToRealtime();
+            });
+
+            // Indicator toggle handlers
+            const toggleButton = (btnId, indicatorName) => {
+                const btn = document.getElementById(btnId);
+                btn.addEventListener('click', () => {
+                    const isActive = chartManager.toggleIndicator(indicatorName);
+                    btn.classList.toggle('active', isActive);
+                });
+            };
+
+            // Volume toggle
+            document.getElementById('toggle-vol').addEventListener('click', () => {
+                const btn = document.getElementById('toggle-vol');
+                const isVisible = chartManager.toggleVolume();
+                btn.classList.toggle('active', isVisible);
+            });
+
+            // SMA toggles
+            toggleButton('toggle-sma20', 'sma_20');
+            toggleButton('toggle-sma50', 'sma_50');
+
+            // EMA toggle (toggles both 12 and 26)
+            document.getElementById('toggle-ema').addEventListener('click', () => {
+                const btn = document.getElementById('toggle-ema');
+                const isActive12 = chartManager.toggleIndicator('ema_12');
+                chartManager.toggleIndicator('ema_26');
+                btn.classList.toggle('active', isActive12);
+            });
+
+            // Bollinger Bands toggle
+            toggleButton('toggle-bb', 'bollinger');
+
+            // Scale mode handler
+            document.getElementById('scale-mode').addEventListener('change', (e) => {
+                chartManager.setScaleMode(parseInt(e.target.value));
+            });
+
+            // Chart type handlers
+            const chartTypes = ['candles', 'bars', 'line', 'area', 'baseline'];
+            chartTypes.forEach(type => {
+                document.getElementById(`chart-${type}`).addEventListener('click', () => {
+                    // Update active button state
+                    chartTypes.forEach(t => document.getElementById(`chart-${t}`).classList.remove('active'));
+                    document.getElementById(`chart-${type}`).classList.add('active');
+                    // Map button ID to chart type
+                    const chartType = type === 'candles' ? 'candlestick' : type === 'bars' ? 'bar' : type;
+                    chartManager.setChartType(chartType);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

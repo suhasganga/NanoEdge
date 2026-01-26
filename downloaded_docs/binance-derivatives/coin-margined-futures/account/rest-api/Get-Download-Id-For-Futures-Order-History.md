@@ -1,0 +1,36 @@
+On this page
+
+# Get Download Id For Futures Order History (USER\_DATA)
+
+## API Description[​](/docs/derivatives/coin-margined-futures/account/rest-api/Get-Download-Id-For-Futures-Order-History#api-description "Direct link to API Description")
+
+Get Download Id For Futures Order History
+
+## HTTP Request[​](/docs/derivatives/coin-margined-futures/account/rest-api/Get-Download-Id-For-Futures-Order-History#http-request "Direct link to HTTP Request")
+
+GET `/dapi/v1/order/asyn`
+
+## Request Weight[​](/docs/derivatives/coin-margined-futures/account/rest-api/Get-Download-Id-For-Futures-Order-History#request-weight "Direct link to Request Weight")
+
+**5**
+
+## Request Parameters[​](/docs/derivatives/coin-margined-futures/account/rest-api/Get-Download-Id-For-Futures-Order-History#request-parameters "Direct link to Request Parameters")
+
+| Name | Type | Mandatory | Description |
+| --- | --- | --- | --- |
+| startTime | LONG | YES | Timestamp in ms |
+| endTime | LONG | YES | Timestamp in ms |
+| recvWindow | LONG | NO |  |
+| timestamp | LONG | YES |  |
+
+> * Request Limitation is 10 times per month, shared by front end download page and rest api
+> * The time between `startTime` and `endTime` can not be longer than 1 year
+
+## Response Example[​](/docs/derivatives/coin-margined-futures/account/rest-api/Get-Download-Id-For-Futures-Order-History#response-example "Direct link to Response Example")
+
+```prism-code
+{  
+	"avgCostTimestampOfLast30d":7241837, // Average time taken for data download in the past 30 days  
+  	"downloadId":"546975389218332672",  
+}
+```

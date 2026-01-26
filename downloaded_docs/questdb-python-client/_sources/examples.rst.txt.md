@@ -1,0 +1,96 @@
+========
+Examples
+========
+Basics
+======
+HTTP with Token Auth
+--------------------
+The following example connects to the database and sends two rows (lines).
+The connection is made via HTTPS and uses token based authentication.
+The data is sent at the end of the ``with`` block.
+.. literalinclude:: ../examples/http.py
+:language: python
+.. \_auth\_and\_tls\_example:
+TCP Authentication and TLS
+--------------------------
+Continuing from the previous example, the connection is authenticated
+and also uses TLS.
+.. literalinclude:: ../examples/auth\_and\_tls.py
+:language: python
+Explicit Buffers
+----------------
+For more :ref:`advanced use cases ` where the same messages
+need to be sent to multiple questdb instances or you want to decouple
+serialization and sending (as may be in a multi-threaded application) construct
+:class:`Buffer ` objects explicitly, then pass them to
+the :func:`Sender.flush ` method.
+Note that this bypasses :ref:`auto-flushing `.
+.. literalinclude:: ../examples/buffer.py
+:language: python
+Ticking Data and Auto-Flush
+---------------------------
+The following example somewhat mimics the behavior of a loop in an application.
+It creates random ticking data at a random interval and uses non-default
+auto-flush settings.
+.. literalinclude:: ../examples/random\_data.py
+:language: python
+Data Frames
+===========
+Pandas Basics
+-------------
+The following example shows how to insert data from a Pandas DataFrame to the
+``'trades'`` table.
+.. literalinclude:: ../examples/pandas\_basic.py
+:language: python
+For details on all options, see the
+:func:`Buffer.dataframe ` method.
+``pd.Categorical`` and multiple tables
+--------------------------------------
+The next example shows some more advanced features inserting data from Pandas.
+\* The data is sent to multiple tables.
+\* It uses the ``pd.Categorical`` type to determine the table to insert and also
+uses it for the sensor name.
+\* Columns of type ``pd.Categorical`` are sent as ``SYMBOL`` types.
+\* The ``at`` parameter is specified using a column index: -1 is the last column.
+.. literalinclude:: ../examples/pandas\_advanced.py
+:language: python
+After running this example, the rows will be split across the ``'humidity'``,
+``'temp\_c'`` and ``'voc\_index'`` tables.
+For details on all options, see the
+:func:`Buffer.dataframe ` method.
+Loading Pandas from a Parquet File
+----------------------------------
+The following example shows how to load a Pandas DataFrame from a Parquet file.
+The example also relies on the dataframe's index name to determine the table
+name.
+.. literalinclude:: ../examples/pandas\_parquet.py
+:language: python
+For details on all options, see the
+:func:`Buffer.dataframe ` method.
+Decimal Types (QuestDB 9.2.0+)
+------------------------------
+The following example shows how to insert data with decimal precision using
+Python's :class:`decimal.Decimal` type.
+Requires QuestDB server 9.2.0+ and :ref:`protocol version 3 `
+(must be :ref:`configured explicitly for TCP/TCPS `).
+``DECIMAL`` columns must be :ref:`pre-created ` (auto-creation not supported).
+See the :ref:`troubleshooting guide ` for common errors.
+First, create the table with ``DECIMAL`` columns:
+.. code-block:: sql
+CREATE TABLE financial\_data (
+symbol SYMBOL,
+price DECIMAL(18, 6),
+quantity DECIMAL(12, 4),
+timestamp TIMESTAMP\_NS
+) TIMESTAMP(timestamp) PARTITION BY DAY;
+Then insert data using Python decimals:
+.. literalinclude:: ../examples/decimal.py
+:language: python
+For better performance with DataFrames, use PyArrow decimal types:
+.. literalinclude:: ../examples/decimal\_arrow.py
+:language: python
+.. note::
+For HTTP/HTTPS, protocol version 3 is auto-negotiated.
+For TCP/TCPS, explicitly configure: ``tcp::addr=localhost:9009;protocol\_version=3;``
+For more details, see the
+`QuestDB DECIMAL documentation `\_.

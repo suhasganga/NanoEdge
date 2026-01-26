@@ -1,0 +1,1 @@
+"""Binance connector tests package."""

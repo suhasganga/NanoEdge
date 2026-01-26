@@ -1,0 +1,165 @@
+Version: 4.2
+
+On this page
+
+In this article you can read a brief overview of all supported series types.
+
+## Series Customisation[​](#series-customisation "Direct link to Series Customisation")
+
+Customization options for series are dependent on their specific type. Each type of series has its own set of available options, which can be found in the documentation provided for that particular series type. This means that any type of series can be customized, but the options you can apply will vary depending on the type of series you are working with.
+
+If you'd like to change any option of a series, you could do this in different ways:
+
+1. You can specify the default options while creating a series:
+
+   ```prism-code
+   // change default top & bottom colors of an area series in creating time  
+   const series = chart.addAreaSeries({  
+       topColor: 'red',  
+       bottomColor: 'green',  
+   });
+   ```
+
+   Note that every method to create a series has an optional `options` parameter.
+2. You can use [`ISeriesApi.applyOptions`](/lightweight-charts/docs/4.2/api/interfaces/ISeriesApi#applyoptions) method to apply other options on the fly:
+
+   ```prism-code
+   // updating candlestick series options on the fly  
+   candlestickSeries.applyOptions({  
+       upColor: 'red',  
+       downColor: 'blue',  
+   });
+   ```
+
+## Area[​](#area "Direct link to Area")
+
+* **Method to create**: [`IChartApi.addAreaSeries`](/lightweight-charts/docs/4.2/api/interfaces/IChartApi#addareaseries)
+* **Data format**: [`SingleValueData`](/lightweight-charts/docs/4.2/api/interfaces/SingleValueData) or [`WhitespaceData`](/lightweight-charts/docs/4.2/api/interfaces/WhitespaceData)
+* **Style options**: a mix of [`SeriesOptionsCommon`](/lightweight-charts/docs/4.2/api/interfaces/SeriesOptionsCommon) and [`AreaStyleOptions`](/lightweight-charts/docs/4.2/api/interfaces/AreaStyleOptions)
+
+An area chart is basically a colored area between the line connecting all data points and [the time scale](/lightweight-charts/docs/4.2/time-scale):
+
+```prism-code
+const chartOptions = { layout: { textColor: CHART_TEXT_COLOR, background: { type: 'solid', color: CHART_BACKGROUND_COLOR } } };  
+const chart = createChart(document.getElementById('container'), chartOptions);  
+const areaSeries = chart.addAreaSeries({ lineColor: LINE_LINE_COLOR, topColor: AREA_TOP_COLOR, bottomColor: AREA_BOTTOM_COLOR });  
+  
+const data = [{ value: 0, time: 1642425322 }, { value: 8, time: 1642511722 }, { value: 10, time: 1642598122 }, { value: 20, time: 1642684522 }, { value: 3, time: 1642770922 }, { value: 43, time: 1642857322 }, { value: 41, time: 1642943722 }, { value: 43, time: 1643030122 }, { value: 56, time: 1643116522 }, { value: 46, time: 1643202922 }];  
+  
+areaSeries.setData(data);  
+  
+chart.timeScale().fitContent();
+```
+
+## Bar[​](#bar "Direct link to Bar")
+
+* **Method to create**: [`IChartApi.addBarSeries`](/lightweight-charts/docs/4.2/api/interfaces/IChartApi#addbarseries)
+* **Data format**: [`BarData`](/lightweight-charts/docs/4.2/api/interfaces/BarData) or [`WhitespaceData`](/lightweight-charts/docs/4.2/api/interfaces/WhitespaceData)
+* **Style options**: a mix of [`SeriesOptionsCommon`](/lightweight-charts/docs/4.2/api/interfaces/SeriesOptionsCommon) and [`BarStyleOptions`](/lightweight-charts/docs/4.2/api/interfaces/BarStyleOptions)
+
+A bar chart shows price movements in the form of bars.
+
+Vertical line length of a bar is limited by the highest and lowest price values.
+Open & Close values are represented by tick marks, on the left & right hand side of the bar respectively:
+
+```prism-code
+const chartOptions = { layout: { textColor: CHART_TEXT_COLOR, background: { type: 'solid', color: CHART_BACKGROUND_COLOR } } };  
+const chart = createChart(document.getElementById('container'), chartOptions);  
+const barSeries = chart.addBarSeries({ upColor: BAR_UP_COLOR, downColor: BAR_DOWN_COLOR });  
+  
+const data = [{ open: 10, high: 10.63, low: 9.49, close: 9.55, time: 1642427876 }, { open: 9.55, high: 10.30, low: 9.42, close: 9.94, time: 1642514276 }, { open: 9.94, high: 10.17, low: 9.92, close: 9.78, time: 1642600676 }, { open: 9.78, high: 10.59, low: 9.18, close: 9.51, time: 1642687076 }, { open: 9.51, high: 10.46, low: 9.10, close: 10.17, time: 1642773476 }, { open: 10.17, high: 10.96, low: 10.16, close: 10.47, time: 1642859876 }, { open: 10.47, high: 11.39, low: 10.40, close: 10.81, time: 1642946276 }, { open: 10.81, high: 11.60, low: 10.30, close: 10.75, time: 1643032676 }, { open: 10.75, high: 11.60, low: 10.49, close: 10.93, time: 1643119076 }, { open: 10.93, high: 11.53, low: 10.76, close: 10.96, time: 1643205476 }];  
+  
+barSeries.setData(data);  
+  
+chart.timeScale().fitContent();
+```
+
+## Baseline[​](#baseline "Direct link to Baseline")
+
+* **Method to create**: [`IChartApi.addBaselineSeries`](/lightweight-charts/docs/4.2/api/interfaces/IChartApi#addbaselineseries)
+* **Data format**: [`SingleValueData`](/lightweight-charts/docs/4.2/api/interfaces/SingleValueData) or [`WhitespaceData`](/lightweight-charts/docs/4.2/api/interfaces/WhitespaceData)
+* **Style options**: a mix of [`SeriesOptionsCommon`](/lightweight-charts/docs/4.2/api/interfaces/SeriesOptionsCommon) and [`BaselineStyleOptions`](/lightweight-charts/docs/4.2/api/interfaces/BaselineStyleOptions)
+
+A baseline is basically two colored areas (top and bottom) between the line connecting all data points and [the base value line](/lightweight-charts/docs/4.2/api/interfaces/BaselineStyleOptions#basevalue):
+
+```prism-code
+const chartOptions = { layout: { textColor: CHART_TEXT_COLOR, background: { type: 'solid', color: CHART_BACKGROUND_COLOR } } };  
+const chart = createChart(document.getElementById('container'), chartOptions);  
+const baselineSeries = chart.addBaselineSeries({ baseValue: { type: 'price', price: 25 }, topLineColor: BASELINE_TOP_LINE_COLOR, topFillColor1: BASELINE_TOP_FILL_COLOR1, topFillColor2: BASELINE_TOP_FILL_COLOR2, bottomLineColor: BASELINE_BOTTOM_LINE_COLOR, bottomFillColor1: BASELINE_BOTTOM_FILL_COLOR1, bottomFillColor2: BASELINE_BOTTOM_FILL_COLOR2 });  
+  
+const data = [{ value: 1, time: 1642425322 }, { value: 8, time: 1642511722 }, { value: 10, time: 1642598122 }, { value: 20, time: 1642684522 }, { value: 3, time: 1642770922 }, { value: 43, time: 1642857322 }, { value: 41, time: 1642943722 }, { value: 43, time: 1643030122 }, { value: 56, time: 1643116522 }, { value: 46, time: 1643202922 }];  
+  
+baselineSeries.setData(data);  
+  
+chart.timeScale().fitContent();
+```
+
+## Candlestick[​](#candlestick "Direct link to Candlestick")
+
+* **Method to create**: [`IChartApi.addCandlestickSeries`](/lightweight-charts/docs/4.2/api/interfaces/IChartApi#addcandlestickseries)
+* **Data format**: [`CandlestickData`](/lightweight-charts/docs/4.2/api/interfaces/CandlestickData) or [`WhitespaceData`](/lightweight-charts/docs/4.2/api/interfaces/WhitespaceData)
+* **Style options**: a mix of [`SeriesOptionsCommon`](/lightweight-charts/docs/4.2/api/interfaces/SeriesOptionsCommon) and [`CandlestickStyleOptions`](/lightweight-charts/docs/4.2/api/interfaces/CandlestickStyleOptions)
+
+A candlestick chart shows price movements in the form of candlesticks.
+On the candlestick chart, open & close values form a solid body of a candle while wicks show high & low values for a candlestick's time interval:
+
+```prism-code
+const chartOptions = { layout: { textColor: CHART_TEXT_COLOR, background: { type: 'solid', color: CHART_BACKGROUND_COLOR } } };  
+const chart = createChart(document.getElementById('container'), chartOptions);  
+const candlestickSeries = chart.addCandlestickSeries({ upColor: BAR_UP_COLOR, downColor: BAR_DOWN_COLOR, borderVisible: false, wickUpColor: BAR_UP_COLOR, wickDownColor: BAR_DOWN_COLOR });  
+  
+const data = [{ open: 10, high: 10.63, low: 9.49, close: 9.55, time: 1642427876 }, { open: 9.55, high: 10.30, low: 9.42, close: 9.94, time: 1642514276 }, { open: 9.94, high: 10.17, low: 9.92, close: 9.78, time: 1642600676 }, { open: 9.78, high: 10.59, low: 9.18, close: 9.51, time: 1642687076 }, { open: 9.51, high: 10.46, low: 9.10, close: 10.17, time: 1642773476 }, { open: 10.17, high: 10.96, low: 10.16, close: 10.47, time: 1642859876 }, { open: 10.47, high: 11.39, low: 10.40, close: 10.81, time: 1642946276 }, { open: 10.81, high: 11.60, low: 10.30, close: 10.75, time: 1643032676 }, { open: 10.75, high: 11.60, low: 10.49, close: 10.93, time: 1643119076 }, { open: 10.93, high: 11.53, low: 10.76, close: 10.96, time: 1643205476 }];  
+  
+candlestickSeries.setData(data);  
+  
+chart.timeScale().fitContent();
+```
+
+## Histogram[​](#histogram "Direct link to Histogram")
+
+* **Method to create**: [`IChartApi.addHistogramSeries`](/lightweight-charts/docs/4.2/api/interfaces/IChartApi#addhistogramseries)
+* **Data format**: [`HistogramData`](/lightweight-charts/docs/4.2/api/interfaces/HistogramData) or [`WhitespaceData`](/lightweight-charts/docs/4.2/api/interfaces/WhitespaceData)
+* **Style options**: a mix of [`SeriesOptionsCommon`](/lightweight-charts/docs/4.2/api/interfaces/SeriesOptionsCommon) and [`HistogramStyleOptions`](/lightweight-charts/docs/4.2/api/interfaces/HistogramStyleOptions)
+
+A histogram series is a graphical representation of the value distribution.
+Histogram creates intervals (columns) and counts how many values fall into each column:
+
+```prism-code
+const chartOptions = { layout: { textColor: CHART_TEXT_COLOR, background: { type: 'solid', color: CHART_BACKGROUND_COLOR } } };  
+const chart = createChart(document.getElementById('container'), chartOptions);  
+const histogramSeries = chart.addHistogramSeries({ color: HISTOGRAM_COLOR });  
+  
+const data = [{ value: 1, time: 1642425322 }, { value: 8, time: 1642511722 }, { value: 10, time: 1642598122 }, { value: 20, time: 1642684522 }, { value: 3, time: 1642770922, color: 'red' }, { value: 43, time: 1642857322 }, { value: 41, time: 1642943722, color: 'red' }, { value: 43, time: 1643030122 }, { value: 56, time: 1643116522 }, { value: 46, time: 1643202922, color: 'red' }];  
+  
+histogramSeries.setData(data);  
+  
+chart.timeScale().fitContent();
+```
+
+## Line[​](#line "Direct link to Line")
+
+* **Method to create**: [`IChartApi.addLineSeries`](/lightweight-charts/docs/4.2/api/interfaces/IChartApi#addlineseries)
+* **Data format**: [`LineData`](/lightweight-charts/docs/4.2/api/interfaces/LineData) or [`WhitespaceData`](/lightweight-charts/docs/4.2/api/interfaces/WhitespaceData)
+* **Style options**: a mix of [`SeriesOptionsCommon`](/lightweight-charts/docs/4.2/api/interfaces/SeriesOptionsCommon) and [`LineStyleOptions`](/lightweight-charts/docs/4.2/api/interfaces/LineStyleOptions)
+
+A line chart is a type of chart that displays information as series of the data points connected by straight line segments:
+
+```prism-code
+const chartOptions = { layout: { textColor: CHART_TEXT_COLOR, background: { type: 'solid', color: CHART_BACKGROUND_COLOR } } };  
+const chart = createChart(document.getElementById('container'), chartOptions);  
+const lineSeries = chart.addLineSeries({ color: LINE_LINE_COLOR });  
+  
+const data = [{ value: 0, time: 1642425322 }, { value: 8, time: 1642511722 }, { value: 10, time: 1642598122 }, { value: 20, time: 1642684522 }, { value: 3, time: 1642770922 }, { value: 43, time: 1642857322 }, { value: 41, time: 1642943722 }, { value: 43, time: 1643030122 }, { value: 56, time: 1643116522 }, { value: 46, time: 1643202922 }];  
+  
+lineSeries.setData(data);  
+  
+chart.timeScale().fitContent();
+```
+
+## Custom Series (Plugins)[​](#custom-series-plugins "Direct link to Custom Series (Plugins)")
+
+Lightweight Charts offers the ability to add your own custom series types, also known as series plugins. This feature allows developers to extend the functionality of the library by adding new chart types, indicators, or other custom visualizations.
+
+Custom series types can be defined by creating a class which implements the [ICustomSeriesPaneView](/lightweight-charts/docs/4.2/api/interfaces/ICustomSeriesPaneView) interface. This class defines the rendering code which Lightweight Charts will use to draw the series on the chart. Once a custom series type is defined, it can be added to any chart instance using the [`addCustomSeries()`](/lightweight-charts/docs/4.2/api/interfaces/IChartApi#addcustomseries) method, and be used just like any other series.
+
+Please see the [Plugins](/lightweight-charts/docs/4.2/plugins/intro) article for more details.

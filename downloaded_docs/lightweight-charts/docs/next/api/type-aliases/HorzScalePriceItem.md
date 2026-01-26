@@ -1,0 +1,3 @@
+Version: Next
+
+> **HorzScalePriceItem**: `number`

@@ -1,0 +1,1078 @@
+/**
+ * TradingView Lightweight Charts integration for HFT Platform.
+ * Styled to match TradingView.com with full indicator support.
+ */
+
+// ============================================================================
+// Indicator Manager - Handles all technical indicators
+// ============================================================================
+class IndicatorManager {
+    constructor(chart) {
+        this.chart = chart;
+        this.indicators = new Map();
+        this.candleData = [];
+    }
+
+    addSMA(period, color) {
+        const series = this.chart.addSeries(LightweightCharts.LineSeries, {
+            color: color,
+            lineWidth: 1,
+            priceScaleId: 'right',
+            lastValueVisible: false,
+            priceLineVisible: false,
+        });
+        this.indicators.set(`sma_${period}`, { series, period, type: 'sma', visible: true, color });
+        return series;
+    }
+
+    addEMA(period, color) {
+        const series = this.chart.addSeries(LightweightCharts.LineSeries, {
+            color: color,
+            lineWidth: 1,
+            priceScaleId: 'right',
+            lastValueVisible: false,
+            priceLineVisible: false,
+        });
+        this.indicators.set(`ema_${period}`, { series, period, type: 'ema', visible: true, color });
+        return series;
+    }
+
+    addBollingerBands(period = 20, stdDev = 2) {
+        const upper = this.chart.addSeries(LightweightCharts.LineSeries, {
+            color: 'rgba(38, 166, 154, 0.6)',
+            lineWidth: 1,
+            priceScaleId: 'right',
+            lastValueVisible: false,
+            priceLineVisible: false,
+        });
+        const middle = this.chart.addSeries(LightweightCharts.LineSeries, {
+            color: 'rgba(255, 255, 255, 0.4)',
+            lineWidth: 1,
+            lineStyle: LightweightCharts.LineStyle.Dashed,
+            priceScaleId: 'right',
+            lastValueVisible: false,
+            priceLineVisible: false,
+        });
+        const lower = this.chart.addSeries(LightweightCharts.LineSeries, {
+            color: 'rgba(239, 83, 80, 0.6)',
+            lineWidth: 1,
+            priceScaleId: 'right',
+            lastValueVisible: false,
+            priceLineVisible: false,
+        });
+        this.indicators.set('bollinger', {
+            upper, middle, lower, period, stdDev, type: 'bollinger', visible: true
+        });
+    }
+
+    update(candleData) {
+        this.candleData = candleData;
+        for (const [name, indicator] of this.indicators) {
+            if (!indicator.visible) continue;
+
+            if (indicator.type === 'sma') {
+                indicator.series.setData(this._calculateSMA(candleData, indicator.period));
+            } else if (indicator.type === 'ema') {
+                indicator.series.setData(this._calculateEMA(candleData, indicator.period));
+            } else if (indicator.type === 'bollinger') {
+                const bb = this._calculateBollingerBands(candleData, indicator.period, indicator.stdDev);
+                indicator.upper.setData(bb.upper);
+                indicator.middle.setData(bb.middle);
+                indicator.lower.setData(bb.lower);
+            }
+        }
+    }
+
+    // Update single point for real-time
+    updateLast(candle) {
+        if (this.candleData.length === 0) return;
+
+        // Update or append the last candle
+        const lastIdx = this.candleData.length - 1;
+        if (this.candleData[lastIdx].time === candle.time) {
+            this.candleData[lastIdx] = candle;
+        } else {
+            this.candleData.push(candle);
+        }
+
+        // Recalculate the last few points for each indicator
+        for (const [name, indicator] of this.indicators) {
+            if (!indicator.visible) continue;
+
+            if (indicator.type === 'sma') {
+                const smaData = this._calculateSMA(this.candleData, indicator.period);
+                if (smaData.length > 0) {
+                    const last = smaData[smaData.length - 1];
+                    if (last.value !== undefined) {
+                        indicator.series.update(last);
+                    }
+                }
+            } else if (indicator.type === 'ema') {
+                const emaData = this._calculateEMA(this.candleData, indicator.period);
+                if (emaData.length > 0) {
+                    const last = emaData[emaData.length - 1];
+                    if (last.value !== undefined) {
+                        indicator.series.update(last);
+                    }
+                }
+            } else if (indicator.type === 'bollinger') {
+                const bb = this._calculateBollingerBands(this.candleData, indicator.period, indicator.stdDev);
+                if (bb.upper.length > 0) {
+                    const lastUpper = bb.upper[bb.upper.length - 1];
+                    const lastMiddle = bb.middle[bb.middle.length - 1];
+                    const lastLower = bb.lower[bb.lower.length - 1];
+                    if (lastUpper.value !== undefined) {
+                        indicator.upper.update(lastUpper);
+                        indicator.middle.update(lastMiddle);
+                        indicator.lower.update(lastLower);
+                    }
+                }
+            }
+        }
+    }
+
+    toggle(name) {
+        const indicator = this.indicators.get(name);
+        if (!indicator) return;
+
+        indicator.visible = !indicator.visible;
+
+        if (indicator.type === 'bollinger') {
+            indicator.upper.applyOptions({ visible: indicator.visible });
+            indicator.middle.applyOptions({ visible: indicator.visible });
+            indicator.lower.applyOptions({ visible: indicator.visible });
+        } else {
+            indicator.series.applyOptions({ visible: indicator.visible });
+        }
+
+        // If turning on, recalculate
+        if (indicator.visible && this.candleData.length > 0) {
+            this.update(this.candleData);
+        }
+
+        return indicator.visible;
+    }
+
+    isVisible(name) {
+        const indicator = this.indicators.get(name);
+        return indicator ? indicator.visible : false;
+    }
+
+    clear() {
+        for (const [name, indicator] of this.indicators) {
+            if (indicator.type === 'bollinger') {
+                indicator.upper.setData([]);
+                indicator.middle.setData([]);
+                indicator.lower.setData([]);
+            } else {
+                indicator.series.setData([]);
+            }
+        }
+        this.candleData = [];
+    }
+
+    _calculateSMA(data, period) {
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            if (i < period - 1) {
+                result.push({ time: data[i].time });
+            } else {
+                let sum = 0;
+                for (let j = i - period + 1; j <= i; j++) {
+                    sum += data[j].close;
+                }
+                result.push({ time: data[i].time, value: sum / period });
+            }
+        }
+        return result;
+    }
+
+    _calculateEMA(data, period) {
+        const k = 2 / (period + 1);
+        const result = [];
+        let ema = null;
+
+        for (let i = 0; i < data.length; i++) {
+            if (i < period - 1) {
+                result.push({ time: data[i].time });
+            } else if (i === period - 1) {
+                let sum = 0;
+                for (let j = 0; j < period; j++) {
+                    sum += data[j].close;
+                }
+                ema = sum / period;
+                result.push({ time: data[i].time, value: ema });
+            } else {
+                ema = data[i].close * k + ema * (1 - k);
+                result.push({ time: data[i].time, value: ema });
+            }
+        }
+        return result;
+    }
+
+    _calculateBollingerBands(data, period, stdDev) {
+        const upper = [], middle = [], lower = [];
+
+        for (let i = 0; i < data.length; i++) {
+            if (i < period - 1) {
+                upper.push({ time: data[i].time });
+                middle.push({ time: data[i].time });
+                lower.push({ time: data[i].time });
+            } else {
+                let sum = 0;
+                for (let j = i - period + 1; j <= i; j++) {
+                    sum += data[j].close;
+                }
+                const sma = sum / period;
+
+                let variance = 0;
+                for (let j = i - period + 1; j <= i; j++) {
+                    variance += Math.pow(data[j].close - sma, 2);
+                }
+                variance /= period;
+                const std = Math.sqrt(variance);
+
+                middle.push({ time: data[i].time, value: sma });
+                upper.push({ time: data[i].time, value: sma + stdDev * std });
+                lower.push({ time: data[i].time, value: sma - stdDev * std });
+            }
+        }
+        return { upper, middle, lower };
+    }
+}
+
+// ============================================================================
+// Chart Manager - Main chart controller
+// ============================================================================
+class ChartManager {
+    constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        this.chart = null;
+        this.series = null;
+        this.volumeSeries = null;
+        this.indicatorManager = null;
+        this.symbol = null;
+        this.interval = null;
+        this.chartType = 'candlestick';  // Current chart type (candlestick, bar, line, area, baseline)
+        this.ws = null;
+        this.isLoading = false;
+        this.reconnectTimeout = null;
+        this.abortController = null;
+        this.connectionId = 0;
+        this.candleData = [];
+        this.priceLines = [];
+        this.currentPeriodCandle = null;  // For aggregating 1m updates into higher timeframes
+        this._wsMinuteVolumes = new Map();  // Track 1m volumes received via WebSocket (avoids double-counting)
+        this._isWsTrackedPeriod = false;  // Whether current period is fully tracked from WS (vs initialized from historical)
+
+        this._initChart();
+        this._initIndicators();
+        this._setupLegend();
+        this._setupTooltip();
+    }
+
+    // Interval durations in seconds
+    static INTERVAL_SECONDS = {
+        '1m': 60,
+        '5m': 300,
+        '15m': 900,
+        '30m': 1800,
+        '1h': 3600,
+        '4h': 14400,
+        '1d': 86400,
+    };
+
+    // Chart type definitions with series configurations
+    static CHART_TYPES = {
+        candlestick: {
+            seriesType: LightweightCharts.CandlestickSeries,
+            options: {
+                upColor: '#26a69a',
+                downColor: '#ef5350',
+                borderVisible: false,
+                wickUpColor: '#26a69a',
+                wickDownColor: '#ef5350',
+            },
+            usesOHLC: true,
+        },
+        bar: {
+            seriesType: LightweightCharts.BarSeries,
+            options: {
+                upColor: '#26a69a',
+                downColor: '#ef5350',
+            },
+            usesOHLC: true,
+        },
+        line: {
+            seriesType: LightweightCharts.LineSeries,
+            options: {
+                color: '#2962FF',
+                lineWidth: 2,
+                crosshairMarkerVisible: true,
+                crosshairMarkerRadius: 4,
+                lastPriceAnimation: LightweightCharts.LastPriceAnimationMode.Continuous,
+            },
+            usesOHLC: false,
+        },
+        area: {
+            seriesType: LightweightCharts.AreaSeries,
+            options: {
+                lineColor: '#2962FF',
+                topColor: 'rgba(41, 98, 255, 0.4)',
+                bottomColor: 'rgba(41, 98, 255, 0.05)',
+                lineWidth: 2,
+                crosshairMarkerVisible: true,
+            },
+            usesOHLC: false,
+        },
+        baseline: {
+            seriesType: LightweightCharts.BaselineSeries,
+            options: {
+                baseValue: { type: 'price', price: 0 },
+                topLineColor: 'rgba(38, 166, 154, 1)',
+                topFillColor1: 'rgba(38, 166, 154, 0.28)',
+                topFillColor2: 'rgba(38, 166, 154, 0.05)',
+                bottomLineColor: 'rgba(239, 83, 80, 1)',
+                bottomFillColor1: 'rgba(239, 83, 80, 0.05)',
+                bottomFillColor2: 'rgba(239, 83, 80, 0.28)',
+                lineWidth: 2,
+            },
+            usesOHLC: false,
+        },
+    };
+
+    /**
+     * Floor timestamp to interval boundary.
+     * E.g., for 1d interval, returns midnight UTC.
+     */
+    _floorTimestamp(timestamp) {
+        const intervalSec = ChartManager.INTERVAL_SECONDS[this.interval] || 60;
+        return Math.floor(timestamp / intervalSec) * intervalSec;
+    }
+
+    /**
+     * Aggregate incoming 1m candle into current period candle.
+     * Returns the aggregated candle for the current period.
+     *
+     * Volume tracking strategy:
+     * - For periods initialized from historical data: Keep historical volume (don't update from WS)
+     * - For NEW periods that start after WS connects: Track from WS using _wsMinuteVolumes
+     *
+     * This avoids the jarring volume drop when switching timeframes while still
+     * correctly tracking volume for new periods.
+     */
+    _aggregateCandle(incoming1mCandle) {
+        const periodTime = this._floorTimestamp(incoming1mCandle.time);
+
+        // If new period started, this is a fresh candle - track entirely from WS
+        if (!this.currentPeriodCandle || this.currentPeriodCandle.time !== periodTime) {
+            this._wsMinuteVolumes.clear();
+            this.currentPeriodCandle = {
+                time: periodTime,
+                open: incoming1mCandle.open,
+                high: incoming1mCandle.high,
+                low: incoming1mCandle.low,
+                close: incoming1mCandle.close,
+                volume: incoming1mCandle.volume,
+            };
+            this._wsMinuteVolumes.set(incoming1mCandle.time, incoming1mCandle.volume);
+            this._isWsTrackedPeriod = true;  // This period is fully tracked from WS
+        } else {
+            // Update OHLC for existing period
+            this.currentPeriodCandle.high = Math.max(this.currentPeriodCandle.high, incoming1mCandle.high);
+            this.currentPeriodCandle.low = Math.min(this.currentPeriodCandle.low, incoming1mCandle.low);
+            this.currentPeriodCandle.close = incoming1mCandle.close;
+
+            // Only update volume if this period is fully tracked from WS
+            // (not initialized from historical data)
+            if (this._isWsTrackedPeriod) {
+                this._wsMinuteVolumes.set(incoming1mCandle.time, incoming1mCandle.volume);
+                let totalVolume = 0;
+                for (const vol of this._wsMinuteVolumes.values()) {
+                    totalVolume += vol;
+                }
+                this.currentPeriodCandle.volume = totalVolume;
+            }
+            // If initialized from historical, keep historical volume unchanged
+        }
+
+        return { ...this.currentPeriodCandle };
+    }
+
+    /**
+     * Convert OHLC data to single-value format (uses close price).
+     * Used for Line, Area, and Baseline chart types.
+     */
+    _toSingleValue(ohlcData) {
+        return ohlcData.map(d => ({ time: d.time, value: d.close }));
+    }
+
+    /**
+     * Get data formatted for the current chart type.
+     * OHLC types get raw candleData, single-value types get converted data.
+     */
+    _getFormattedData() {
+        const config = ChartManager.CHART_TYPES[this.chartType];
+        return config.usesOHLC ? this.candleData : this._toSingleValue(this.candleData);
+    }
+
+    /**
+     * Get OHLC candle for a specific timestamp.
+     * Used for legend/tooltip display regardless of chart type.
+     */
+    _getOHLCForTime(time) {
+        return this.candleData.find(c => c.time === time) || null;
+    }
+
+    /**
+     * Create the main price series based on current chartType.
+     */
+    _createMainSeries() {
+        const config = ChartManager.CHART_TYPES[this.chartType];
+        const options = { ...config.options };
+
+        // For baseline chart, set the base value from first candle's open price
+        if (this.chartType === 'baseline' && this.candleData.length > 0) {
+            options.baseValue = { type: 'price', price: this.candleData[0].open };
+        }
+
+        this.series = this.chart.addSeries(config.seriesType, options);
+    }
+
+    _initChart() {
+        // Create chart with TradingView dark theme and autoSize for responsiveness
+        this.chart = LightweightCharts.createChart(this.container, {
+            autoSize: true,  // Enable ResizeObserver for responsiveness
+            layout: {
+                background: { type: 'solid', color: '#131722' },
+                textColor: '#d1d4dc',
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            },
+            grid: {
+                vertLines: { color: '#1e222d' },
+                horzLines: { color: '#1e222d' },
+            },
+            crosshair: {
+                mode: LightweightCharts.CrosshairMode.Normal,
+                vertLine: {
+                    color: '#758696',
+                    width: 1,
+                    style: LightweightCharts.LineStyle.Dashed,
+                    labelBackgroundColor: '#2a2e39',
+                },
+                horzLine: {
+                    color: '#758696',
+                    width: 1,
+                    style: LightweightCharts.LineStyle.Dashed,
+                    labelBackgroundColor: '#2a2e39',
+                },
+            },
+            rightPriceScale: {
+                borderColor: '#2a2e39',
+                scaleMargins: {
+                    top: 0.05,
+                    bottom: 0.25,  // Leave room for volume
+                },
+            },
+            timeScale: {
+                borderColor: '#2a2e39',
+                timeVisible: true,
+                secondsVisible: false,
+                rightOffset: 5,
+                barSpacing: 6,
+            },
+            handleScroll: {
+                mouseWheel: true,
+                pressedMouseMove: true,
+                horzTouchDrag: true,
+                vertTouchDrag: true,
+            },
+            handleScale: {
+                axisPressedMouseMove: true,
+                mouseWheel: true,
+                pinch: true,
+            },
+        });
+
+        // Create main series based on current chart type
+        this._createMainSeries();
+
+        // Add volume histogram series as overlay
+        this.volumeSeries = this.chart.addSeries(LightweightCharts.HistogramSeries, {
+            priceScaleId: 'volume',
+            priceFormat: { type: 'volume' },
+        });
+
+        // Configure volume scale positioning (bottom 20% of chart)
+        this.volumeSeries.priceScale().applyOptions({
+            scaleMargins: {
+                top: 0.85,
+                bottom: 0,
+            },
+        });
+
+        // Subscribe to visible range changes for lazy loading
+        this.chart.timeScale().subscribeVisibleLogicalRangeChange(
+            this._onVisibleRangeChange.bind(this)
+        );
+
+        // Subscribe to crosshair move for legend updates
+        this.chart.subscribeCrosshairMove(this._onCrosshairMove.bind(this));
+    }
+
+    _initIndicators() {
+        this.indicatorManager = new IndicatorManager(this.chart);
+
+        // Add default indicators (initially visible)
+        this.indicatorManager.addSMA(20, '#2962FF');   // Blue
+        this.indicatorManager.addSMA(50, '#FF6D00');   // Orange
+        this.indicatorManager.addEMA(12, '#00E676');   // Green
+        this.indicatorManager.addEMA(26, '#FF1744');   // Red
+        this.indicatorManager.addBollingerBands(20, 2);
+
+        // Set initial visibility (all off by default, user toggles on)
+        this.indicatorManager.toggle('sma_20');
+        this.indicatorManager.toggle('sma_50');
+        this.indicatorManager.toggle('ema_12');
+        this.indicatorManager.toggle('ema_26');
+        this.indicatorManager.toggle('bollinger');
+    }
+
+    _setupLegend() {
+        // Create legend element if it doesn't exist
+        let legend = document.getElementById('chart-legend');
+        if (!legend) {
+            legend = document.createElement('div');
+            legend.id = 'chart-legend';
+            legend.className = 'chart-legend';
+            this.container.appendChild(legend);
+        }
+        this.legend = legend;
+    }
+
+    _setupTooltip() {
+        // Create tooltip element if it doesn't exist
+        let tooltip = document.getElementById('chart-tooltip');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.id = 'chart-tooltip';
+            tooltip.className = 'chart-tooltip';
+            this.container.appendChild(tooltip);
+        }
+        this.tooltip = tooltip;
+    }
+
+    _onCrosshairMove(param) {
+        if (!param.point || !param.time || param.point.x < 0 || param.point.y < 0) {
+            this.tooltip.style.display = 'none';
+            return;
+        }
+
+        const candleData = param.seriesData.get(this.series);
+        const volumeData = param.seriesData.get(this.volumeSeries);
+
+        if (!candleData) {
+            this.tooltip.style.display = 'none';
+            return;
+        }
+
+        // Update legend
+        this._updateLegend(candleData, volumeData);
+
+        // Update tooltip
+        this._updateTooltip(param, candleData, volumeData);
+    }
+
+    _updateLegend(data, volumeData) {
+        if (!this.legend || !data) return;
+
+        // Show legend
+        this.legend.style.display = 'block';
+
+        const config = ChartManager.CHART_TYPES[this.chartType];
+        const volume = volumeData ? this._formatVolume(volumeData.value) : '--';
+
+        // Get OHLC data - either directly from data or by looking up by time
+        const ohlc = config.usesOHLC ? data : this._getOHLCForTime(data.time);
+
+        if (ohlc && ohlc.open !== undefined) {
+            // Show full OHLC legend
+            const change = ohlc.close - ohlc.open;
+            const changePercent = ((change / ohlc.open) * 100).toFixed(2);
+            const changeColor = change >= 0 ? '#26a69a' : '#ef5350';
+            const changeSign = change >= 0 ? '+' : '';
+
+            this.legend.innerHTML = `
+                <div class="legend-symbol">${this.symbol || '--'}</div>
+                <div class="legend-ohlc">
+                    <span class="legend-label">O</span><span class="legend-value">${ohlc.open.toFixed(2)}</span>
+                    <span class="legend-label">H</span><span class="legend-value">${ohlc.high.toFixed(2)}</span>
+                    <span class="legend-label">L</span><span class="legend-value">${ohlc.low.toFixed(2)}</span>
+                    <span class="legend-label">C</span><span class="legend-value">${ohlc.close.toFixed(2)}</span>
+                    <span class="legend-change" style="color: ${changeColor}">${changeSign}${change.toFixed(2)} (${changeSign}${changePercent}%)</span>
+                </div>
+                <div class="legend-volume">Vol: ${volume}</div>
+            `;
+        } else {
+            // Single-value fallback (shouldn't happen often since we store OHLC)
+            const value = data.value !== undefined ? data.value : data.close;
+            this.legend.innerHTML = `
+                <div class="legend-symbol">${this.symbol || '--'}</div>
+                <div class="legend-ohlc">
+                    <span class="legend-label">Price</span><span class="legend-value">${value.toFixed(2)}</span>
+                </div>
+                <div class="legend-volume">Vol: ${volume}</div>
+            `;
+        }
+    }
+
+    _updateTooltip(param, data, volumeData) {
+        const time = data.time;
+        const date = new Date(time * 1000);
+        // Use UTC to match TradingView's time axis display, DD/MM/YYYY format
+        const dateStr = date.toLocaleDateString('en-GB', { timeZone: 'UTC' });
+        const timeStr = date.toLocaleTimeString('en-GB', { timeZone: 'UTC' });
+
+        const config = ChartManager.CHART_TYPES[this.chartType];
+        // Get OHLC data - either directly from data or by looking up by time
+        const ohlc = config.usesOHLC ? data : this._getOHLCForTime(time);
+
+        let contentHtml = '';
+
+        if (ohlc && ohlc.open !== undefined) {
+            // Show full OHLC tooltip
+            const change = ohlc.close - ohlc.open;
+            const changePercent = ((change / ohlc.open) * 100).toFixed(2);
+            const changeColor = change >= 0 ? '#26a69a' : '#ef5350';
+            const changeSign = change >= 0 ? '+' : '';
+
+            contentHtml = `
+                <div class="tooltip-row"><span>O:</span><span>${ohlc.open.toFixed(2)}</span></div>
+                <div class="tooltip-row"><span>H:</span><span>${ohlc.high.toFixed(2)}</span></div>
+                <div class="tooltip-row"><span>L:</span><span>${ohlc.low.toFixed(2)}</span></div>
+                <div class="tooltip-row"><span>C:</span><span>${ohlc.close.toFixed(2)}</span></div>
+                <div class="tooltip-row" style="color: ${changeColor}"><span>Chg:</span><span>${changeSign}${changePercent}%</span></div>
+            `;
+        } else {
+            // Single-value fallback
+            const value = data.value !== undefined ? data.value : data.close;
+            contentHtml = `
+                <div class="tooltip-row"><span>Price:</span><span>${value.toFixed(2)}</span></div>
+            `;
+        }
+
+        this.tooltip.innerHTML = `
+            <div class="tooltip-date">${dateStr} ${timeStr}</div>
+            ${contentHtml}
+            ${volumeData ? `<div class="tooltip-row"><span>Vol:</span><span>${this._formatVolume(volumeData.value)}</span></div>` : ''}
+        `;
+
+        // Position tooltip near cursor but within bounds
+        const containerRect = this.container.getBoundingClientRect();
+        let left = param.point.x + 15;
+        let top = param.point.y + 15;
+
+        // Keep tooltip within chart bounds
+        const tooltipWidth = 140;
+        const tooltipHeight = 160;
+        if (left + tooltipWidth > containerRect.width) {
+            left = param.point.x - tooltipWidth - 10;
+        }
+        if (top + tooltipHeight > containerRect.height) {
+            top = param.point.y - tooltipHeight - 10;
+        }
+
+        this.tooltip.style.left = left + 'px';
+        this.tooltip.style.top = top + 'px';
+        this.tooltip.style.display = 'block';
+    }
+
+    _formatVolume(value) {
+        if (value >= 1e9) return (value / 1e9).toFixed(2) + 'B';
+        if (value >= 1e6) return (value / 1e6).toFixed(2) + 'M';
+        if (value >= 1e3) return (value / 1e3).toFixed(2) + 'K';
+        return value.toFixed(2);
+    }
+
+    async _loadHistory(symbol, interval, limit = 500, endTime = null) {
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+        this.abortController = new AbortController();
+
+        let url = `/api/history?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+        if (endTime) {
+            url += `&end_time=${endTime}`;
+        }
+
+        const response = await fetch(url, { signal: this.abortController.signal });
+        if (!response.ok) {
+            throw new Error(`Failed to fetch history: ${response.status}`);
+        }
+
+        return await response.json();
+    }
+
+    async _loadMoreHistory() {
+        if (this.isLoading) return;
+        this.isLoading = true;
+
+        try {
+            if (this.candleData.length === 0) return;
+
+            const oldestTime = this.candleData[0].time;
+            const moreData = await this._loadHistory(
+                this.symbol,
+                this.interval,
+                500,
+                oldestTime - 1
+            );
+
+            if (moreData.length > 0) {
+                // Combine with existing data
+                this.candleData = [...moreData, ...this.candleData];
+                this.series.setData(this._getFormattedData());
+
+                // Update volume
+                this._updateVolumeData();
+
+                // Update indicators
+                this.indicatorManager.update(this.candleData);
+            }
+        } catch (e) {
+            if (e.name !== 'AbortError') {
+                console.error('Failed to load more history:', e);
+            }
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    _updateVolumeData() {
+        const volumeData = this.candleData.map(d => ({
+            time: d.time,
+            value: d.volume || 0,
+            color: d.close >= d.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)'
+        }));
+        this.volumeSeries.setData(volumeData);
+    }
+
+    _onVisibleRangeChange(logicalRange) {
+        if (!logicalRange) return;
+
+        const barsInfo = this.series.barsInLogicalRange(logicalRange);
+        if (barsInfo && barsInfo.barsBefore !== null && barsInfo.barsBefore < 10) {
+            this._loadMoreHistory();
+        }
+    }
+
+    _connectWebSocket() {
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
+
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
+
+        this.connectionId++;
+        const currentConnectionId = this.connectionId;
+
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/candles/${this.symbol}`;
+
+        this.ws = new WebSocket(wsUrl);
+
+        this.ws.onopen = () => {
+            console.log(`WebSocket connected: ${this.symbol}`);
+        };
+
+        this.ws.onmessage = (event) => {
+            if (currentConnectionId !== this.connectionId) return;
+
+            try {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'candle') {
+                    // Validate timestamp - reject if before 2020 (1577836800 = Jan 1, 2020 UTC)
+                    const MIN_VALID_TIMESTAMP = 1577836800;
+                    if (msg.time < MIN_VALID_TIMESTAMP) {
+                        console.warn('Invalid timestamp from WebSocket:', msg.time, 'raw message:', msg);
+                        return;  // Skip this invalid candle
+                    }
+
+                    // Incoming 1m candle from WebSocket
+                    const incoming1mCandle = {
+                        time: msg.time,
+                        open: msg.open,
+                        high: msg.high,
+                        low: msg.low,
+                        close: msg.close,
+                        volume: msg.volume || 0,
+                    };
+
+                    // Aggregate to current interval (1m stays as-is, higher TFs get aggregated)
+                    const candle = this.interval === '1m'
+                        ? incoming1mCandle
+                        : this._aggregateCandle(incoming1mCandle);
+
+                    // Update series with appropriate data format
+                    const config = ChartManager.CHART_TYPES[this.chartType];
+                    if (config.usesOHLC) {
+                        this.series.update(candle);
+                    } else {
+                        this.series.update({ time: candle.time, value: candle.close });
+                    }
+
+                    // Update local data array
+                    if (this.candleData.length > 0) {
+                        const lastIdx = this.candleData.length - 1;
+                        if (this.candleData[lastIdx].time === candle.time) {
+                            this.candleData[lastIdx] = candle;
+                        } else {
+                            this.candleData.push(candle);
+                        }
+                    }
+
+                    // Update volume
+                    this.volumeSeries.update({
+                        time: candle.time,
+                        value: candle.volume,
+                        color: candle.close >= candle.open
+                            ? 'rgba(38, 166, 154, 0.5)'
+                            : 'rgba(239, 83, 80, 0.5)'
+                    });
+
+                    // Update indicators
+                    this.indicatorManager.updateLast(candle);
+                }
+            } catch (e) {
+                console.error('Error processing WebSocket message:', e);
+            }
+        };
+
+        this.ws.onclose = () => {
+            if (currentConnectionId !== this.connectionId) return;
+            console.log('WebSocket disconnected, reconnecting...');
+            this.reconnectTimeout = setTimeout(() => {
+                if (this.symbol && currentConnectionId === this.connectionId) {
+                    this._connectWebSocket();
+                }
+            }, 3000);
+        };
+
+        this.ws.onerror = (e) => {
+            console.error('WebSocket error:', e);
+        };
+    }
+
+    async switchSymbol(symbol, interval) {
+        // Close existing WebSocket
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
+
+        // Cancel any in-flight requests
+        if (this.abortController) {
+            this.abortController.abort();
+            this.abortController = null;
+        }
+
+        // Reset aggregation state for new symbol/interval
+        this.currentPeriodCandle = null;
+        this._wsMinuteVolumes.clear();
+        this._isWsTrackedPeriod = false;
+
+        // Clear chart data
+        this.series.setData([]);
+        this.volumeSeries.setData([]);
+        this.indicatorManager.clear();
+        this.candleData = [];
+        this.priceLines.forEach(pl => this.series.removePriceLine(pl));
+        this.priceLines = [];
+
+        // Update symbol/interval
+        this.symbol = symbol;
+        this.interval = interval;
+
+        // Update legend with symbol
+        if (this.legend) {
+            this.legend.innerHTML = `<div class="legend-symbol">${symbol}</div><div class="legend-ohlc">Loading...</div>`;
+        }
+
+        // Show loading
+        const loading = document.getElementById('chart-loading');
+        if (loading) loading.style.display = 'flex';
+
+        try {
+            // Load historical data
+            const data = await this._loadHistory(symbol, interval, 500);
+
+            // Verify symbol hasn't changed
+            if (this.symbol !== symbol) return;
+
+            // Store data
+            this.candleData = data;
+
+            // Update chart with formatted data for current chart type
+            this.series.setData(this._getFormattedData());
+
+            // Update volume
+            this._updateVolumeData();
+
+            // Update indicators
+            this.indicatorManager.update(data);
+
+            // Update legend with latest candle and initialize aggregation state
+            if (data.length > 0) {
+                const lastCandle = data[data.length - 1];
+                this._updateLegend(lastCandle, { value: lastCandle.volume || 0 });
+
+                // Initialize currentPeriodCandle from last historical candle for OHLC continuity
+                // Keep historical volume for this period - don't update from WS to avoid
+                // jarring volume changes. New periods (after this one closes) will be
+                // fully tracked from WS.
+                if (interval !== '1m') {
+                    this.currentPeriodCandle = { ...lastCandle };
+                    this._wsMinuteVolumes.clear();
+                    this._isWsTrackedPeriod = false;  // This period uses historical volume
+                }
+            }
+
+            // Fit content
+            this.chart.timeScale().fitContent();
+
+            // Connect WebSocket
+            this._connectWebSocket();
+
+        } catch (e) {
+            if (e.name === 'AbortError') return;
+            console.error('Failed to load data:', e);
+        } finally {
+            if (loading) loading.style.display = 'none';
+        }
+    }
+
+    // ========================================================================
+    // Public API for controls
+    // ========================================================================
+
+    scrollToRealtime() {
+        this.chart.timeScale().scrollToRealTime();
+    }
+
+    fitContent() {
+        this.chart.timeScale().fitContent();
+    }
+
+    setScaleMode(mode) {
+        // 0 = Normal, 1 = Logarithmic, 2 = Percentage, 3 = IndexedTo100
+        this.chart.priceScale('right').applyOptions({
+            mode: parseInt(mode),
+        });
+    }
+
+    toggleIndicator(name) {
+        return this.indicatorManager.toggle(name);
+    }
+
+    isIndicatorVisible(name) {
+        return this.indicatorManager.isVisible(name);
+    }
+
+    toggleVolume() {
+        const currentVisible = this.volumeSeries.options().visible !== false;
+        this.volumeSeries.applyOptions({ visible: !currentVisible });
+        return !currentVisible;
+    }
+
+    addPriceLine(price, title, color = '#787b86') {
+        const priceLine = this.series.createPriceLine({
+            price: price,
+            color: color,
+            lineWidth: 1,
+            lineStyle: LightweightCharts.LineStyle.Dashed,
+            axisLabelVisible: true,
+            title: title,
+        });
+        this.priceLines.push(priceLine);
+        return priceLine;
+    }
+
+    removePriceLine(priceLine) {
+        this.series.removePriceLine(priceLine);
+        const idx = this.priceLines.indexOf(priceLine);
+        if (idx > -1) this.priceLines.splice(idx, 1);
+    }
+
+    setCrosshairMode(mode) {
+        // 0 = Normal, 1 = Magnet, 2 = Hidden
+        this.chart.applyOptions({
+            crosshair: { mode: mode },
+        });
+    }
+
+    /**
+     * Switch chart type (candlestick, bar, line, area, baseline).
+     * Preserves data, visible range, and price lines.
+     */
+    setChartType(chartType) {
+        if (chartType === this.chartType) return;
+        if (!ChartManager.CHART_TYPES[chartType]) {
+            console.error(`Invalid chart type: ${chartType}`);
+            return;
+        }
+
+        // Save current state
+        const visibleRange = this.chart.timeScale().getVisibleLogicalRange();
+        const priceLineData = this.priceLines.map(pl => ({
+            price: pl.options().price,
+            title: pl.options().title,
+            color: pl.options().color,
+        }));
+
+        // Remove old series (this also removes attached price lines)
+        this.chart.removeSeries(this.series);
+        this.priceLines = [];
+
+        // Update chart type and create new series
+        this.chartType = chartType;
+        this._createMainSeries();
+
+        // Set data in appropriate format
+        if (this.candleData.length > 0) {
+            this.series.setData(this._getFormattedData());
+        }
+
+        // Restore price lines on new series
+        priceLineData.forEach(({ price, title, color }) => {
+            this.addPriceLine(price, title, color);
+        });
+
+        // Restore visible range
+        if (visibleRange) {
+            this.chart.timeScale().setVisibleLogicalRange(visibleRange);
+        }
+
+        // Update legend with latest data
+        if (this.candleData.length > 0) {
+            const lastCandle = this.candleData[this.candleData.length - 1];
+            this._updateLegend(lastCandle, { value: lastCandle.volume || 0 });
+        }
+    }
+
+    /**
+     * Get the current chart type.
+     */
+    getChartType() {
+        return this.chartType;
+    }
+
+    destroy() {
+        if (this.ws) this.ws.close();
+        if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout);
+        if (this.chart) this.chart.remove();
+    }
+}

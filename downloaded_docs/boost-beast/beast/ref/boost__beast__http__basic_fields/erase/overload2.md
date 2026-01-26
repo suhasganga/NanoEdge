@@ -1,0 +1,27 @@
+###### [http::basic\_fields::erase (2 of 3 overloads)](overload2.html "http::basic_fields::erase (2 of 3 overloads)")
+
+Remove all fields with the specified name.
+
+###### [Synopsis](overload2.html#beast.ref.boost__beast__http__basic_fields.erase.overload2.synopsis)
+
+```programlisting
+std::size_t
+erase(
+    field name);
+```
+
+###### [Description](overload2.html#beast.ref.boost__beast__http__basic_fields.erase.overload2.description)
+
+All fields with the same field name are erased from the container. References
+and iterators to the erased elements are invalidated. Other references
+and iterators are not affected.
+
+###### [Parameters](overload2.html#beast.ref.boost__beast__http__basic_fields.erase.overload2.parameters)
+
+| Name | Description |
+| --- | --- |
+| `name` | The field name. |
+
+###### [Return Value](overload2.html#beast.ref.boost__beast__http__basic_fields.erase.overload2.return_value)
+
+The number of fields removed.

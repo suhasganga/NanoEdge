@@ -1,0 +1,81 @@
+Version: 4.0
+
+On this page
+
+Structure describing a single item of data for baseline series
+
+## Extends[​](#extends "Direct link to Extends")
+
+* [`SingleValueData`](/lightweight-charts/docs/4.0/api/interfaces/SingleValueData)
+
+## Properties[​](#properties "Direct link to Properties")
+
+### topFillColor1?[​](#topfillcolor1 "Direct link to topFillColor1?")
+
+> `optional` **topFillColor1**: `string`
+
+Optional top area top fill color value for certain data item. If missed, color from options is used
+
+---
+
+### topFillColor2?[​](#topfillcolor2 "Direct link to topFillColor2?")
+
+> `optional` **topFillColor2**: `string`
+
+Optional top area bottom fill color value for certain data item. If missed, color from options is used
+
+---
+
+### topLineColor?[​](#toplinecolor "Direct link to topLineColor?")
+
+> `optional` **topLineColor**: `string`
+
+Optional top area line color value for certain data item. If missed, color from options is used
+
+---
+
+### bottomFillColor1?[​](#bottomfillcolor1 "Direct link to bottomFillColor1?")
+
+> `optional` **bottomFillColor1**: `string`
+
+Optional bottom area top fill color value for certain data item. If missed, color from options is used
+
+---
+
+### bottomFillColor2?[​](#bottomfillcolor2 "Direct link to bottomFillColor2?")
+
+> `optional` **bottomFillColor2**: `string`
+
+Optional bottom area bottom fill color value for certain data item. If missed, color from options is used
+
+---
+
+### bottomLineColor?[​](#bottomlinecolor "Direct link to bottomLineColor?")
+
+> `optional` **bottomLineColor**: `string`
+
+Optional bottom area line color value for certain data item. If missed, color from options is used
+
+---
+
+### time[​](#time "Direct link to time")
+
+> **time**: [`Time`](/lightweight-charts/docs/4.0/api/type-aliases/Time)
+
+The time of the data.
+
+#### Inherited from[​](#inherited-from "Direct link to Inherited from")
+
+[`SingleValueData`](/lightweight-charts/docs/4.0/api/interfaces/SingleValueData) . [`time`](/lightweight-charts/docs/4.0/api/interfaces/SingleValueData#time)
+
+---
+
+### value[​](#value "Direct link to value")
+
+> **value**: `number`
+
+Price value of the data.
+
+#### Inherited from[​](#inherited-from-1 "Direct link to Inherited from")
+
+[`SingleValueData`](/lightweight-charts/docs/4.0/api/interfaces/SingleValueData) . [`value`](/lightweight-charts/docs/4.0/api/interfaces/SingleValueData#value)
