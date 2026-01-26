@@ -13,6 +13,7 @@ from hft.api.history import router as history_router
 from hft.api.metrics import router as metrics_router
 from hft.api.symbols import router as symbols_router
 from hft.api.websocket import router as ws_router
+from hft.mm.routes import router as mm_router
 
 VITE_DEV_URL = "http://localhost:5173"
 VITE_PORT = 5173
@@ -64,6 +65,7 @@ app.include_router(history_router, prefix="/api", tags=["history"])
 app.include_router(metrics_router, prefix="/api", tags=["metrics"])
 app.include_router(symbols_router, tags=["symbols"])
 app.include_router(ws_router, tags=["websocket"])
+app.include_router(mm_router, prefix="/api/mm", tags=["market-making"])
 
 
 @app.get("/health")

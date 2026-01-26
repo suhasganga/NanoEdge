@@ -150,8 +150,16 @@ def handle_depth_update(symbol: str, snapshot: OrderBookSnapshot) -> None:
 
 
 def handle_trade(trade: Trade) -> None:
-    """Process incoming trade for recent trades display."""
+    """Process incoming trade for recent trades display and order simulation."""
     _broadcast_trade(trade.symbol, trade)
+
+    # Process trade for market making simulation (if simulator exists for this symbol)
+    try:
+        from hft.mm.routes import process_trade_for_simulation
+
+        process_trade_for_simulation(trade)
+    except ImportError:
+        pass  # MM module not available
 
 
 def handle_stats(stats: MarketStats) -> None:
