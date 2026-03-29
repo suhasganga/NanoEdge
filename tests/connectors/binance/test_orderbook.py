@@ -4,9 +4,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from hft.connectors.binance.orderbook import BinanceOrderBook
-from hft.connectors.binance.types import BinanceDepthUpdate
-from hft.core.types import OrderBookSnapshot
+from nanoedge.connectors.binance.orderbook import BinanceOrderBook
+from nanoedge.connectors.binance.types import BinanceDepthUpdate
+from nanoedge.core.types import OrderBookSnapshot
 
 
 class TestBinanceOrderBookInit:

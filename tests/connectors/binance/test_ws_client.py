@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from hft.connectors.binance.ws_client import BinanceWebSocketClient
+from nanoedge.connectors.binance.ws_client import BinanceWebSocketClient
 
 
 class TestBinanceWebSocketClientInit:

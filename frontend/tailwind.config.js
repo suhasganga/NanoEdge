@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // HFT Dark Theme
+        // NanoEdge Dark Theme
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

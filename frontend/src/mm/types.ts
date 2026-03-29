@@ -1,7 +1,7 @@
 /**
  * Order and position types for market making simulation.
  *
- * These types match the backend hft/mm/types.py definitions.
+ * These types match the backend nanoedge/mm/types.py definitions.
  */
 
 export type OrderSide = "buy" | "sell";

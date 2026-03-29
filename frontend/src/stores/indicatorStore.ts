@@ -29,7 +29,7 @@ export const PRESET_IDS = {
   BOLLINGER: "bollinger_20_preset",
 } as const;
 
-const STORAGE_KEY = "hft-indicators";
+const STORAGE_KEY = "nanoedge-indicators";
 
 // Generate unique ID for new indicators
 export function generateIndicatorId(type: IndicatorType, period: number): string {

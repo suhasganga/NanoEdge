@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "version": "1.0.0",
-  "description": "HFT Trading Frontend - SolidJS + shadcn-solid",
+  "description": "NanoEdge Trading Frontend - SolidJS + shadcn-solid",
   "type": "module",
   "scripts": {
     "dev": "vite",

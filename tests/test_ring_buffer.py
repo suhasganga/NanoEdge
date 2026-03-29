@@ -2,8 +2,8 @@
 
 import pytest
 
-from hft.core.ring_buffer import TickRingBuffer
-from hft.core.types import MarketTick
+from nanoedge.core.ring_buffer import TickRingBuffer
+from nanoedge.core.types import MarketTick
 
 
 class TestTickRingBuffer:

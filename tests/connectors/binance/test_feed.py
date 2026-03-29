@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from hft.connectors.binance.feed import BinanceFeedHandler
-from hft.core.types import OHLCV, MarketStats, MarketTick, Trade
+from nanoedge.connectors.binance.feed import BinanceFeedHandler
+from nanoedge.core.types import OHLCV, MarketStats, MarketTick, Trade
 
 
 class TestBinanceFeedHandlerInit:
@@ -615,7 +615,7 @@ class TestMaybeLogStats:
         handler._tick_count = 100
         handler._kline_count = 50
 
-        with patch("hft.connectors.binance.feed.logger") as mock_logger:
+        with patch("nanoedge.connectors.binance.feed.logger") as mock_logger:
             handler._maybe_log_stats()
             mock_logger.info.assert_called_once()
 
@@ -638,7 +638,7 @@ class TestMaybeLogStats:
         handler._tick_count = 100
         handler._kline_count = 50
 
-        with patch("hft.connectors.binance.feed.logger") as mock_logger:
+        with patch("nanoedge.connectors.binance.feed.logger") as mock_logger:
             handler._maybe_log_stats()
             mock_logger.info.assert_not_called()
 

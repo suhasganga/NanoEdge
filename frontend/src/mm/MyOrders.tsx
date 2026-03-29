@@ -10,8 +10,7 @@
 
 import { Component, createSignal, For, Show } from "solid-js";
 import { orderStore } from "./orderStore";
-import { useOrdersWebSocket } from "./useOrdersWebSocket";
-import type { SimulatedOrder, GridOrderConfig } from "./types";
+import type { GridOrderConfig } from "./types";
 
 // API client for order operations
 const API_BASE = "/api/mm";
@@ -115,10 +114,8 @@ interface MyOrdersProps {
 }
 
 export const MyOrders: Component<MyOrdersProps> = (props) => {
-  // WebSocket connection
-  const { isConnected } = useOrdersWebSocket({
-    symbol: () => props.symbol,
-  });
+  // Connection status from singleton store (WebSocket managed by Chart.tsx)
+  const isConnected = orderStore.isConnected;
 
   // Order entry state
   const [side, setSide] = createSignal<"buy" | "sell">("buy");
@@ -520,6 +517,39 @@ export const MyOrders: Component<MyOrdersProps> = (props) => {
               </div>
             )}
           </For>
+        </Show>
+
+        {/* Recent Fills Section */}
+        <Show when={orderStore.fills().length > 0}>
+          <div class="border-t border-border mt-2">
+            <div class="sticky top-0 border-b border-border bg-background px-3 py-1">
+              <span class="text-xs font-medium text-muted-foreground">
+                Recent Fills ({orderStore.fills().length})
+              </span>
+            </div>
+            <div class="max-h-40 overflow-y-auto">
+              <For each={orderStore.fills().slice(-15).reverse()}>
+                {(fill) => (
+                  <div class="flex items-center justify-between border-b border-border px-3 py-1.5 text-xs">
+                    <span
+                      class={cn(
+                        "font-medium",
+                        fill.side === "buy" ? "text-green-500" : "text-red-500"
+                      )}
+                    >
+                      {fill.side.toUpperCase()}
+                    </span>
+                    <span>{formatNum(fill.quantity, 4)}</span>
+                    <span class="text-muted-foreground">@</span>
+                    <span>{formatNum(fill.price)}</span>
+                    <span class="text-muted-foreground">
+                      {new Date(fill.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                )}
+              </For>
+            </div>
+          </div>
         </Show>
       </div>
     </div>

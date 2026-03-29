@@ -12,8 +12,8 @@ import asyncio
 import webbrowser
 from urllib.parse import parse_qs, urlparse
 
-from hft.connectors.fyers.auth import generate_auth_url, get_access_token
-from hft.config import settings
+from nanoedge.connectors.fyers.auth import generate_auth_url, get_access_token
+from nanoedge.config import settings
 
 
 def main():
@@ -27,7 +27,7 @@ def main():
 
     if not app_id or not secret:
         print("\n❌ Error: FYERS credentials not found in .env")
-        print("   Set HFT_FYERS_APP_ID and HFT_FYERS_SECRET")
+        print("   Set NANOEDGE_FYERS_APP_ID and NANOEDGE_FYERS_SECRET")
         return
 
     print(f"\nApp ID: {app_id}")
@@ -85,7 +85,7 @@ def main():
         print("\n" + "=" * 60)
         print("Add this to your .env file:")
         print("=" * 60)
-        print(f"\nHFT_FYERS_ACCESS_TOKEN={access_token}\n")
+        print(f"\nNANOEDGE_FYERS_ACCESS_TOKEN={access_token}\n")
 
         # Also print just the token for easy copy
         print("-" * 60)

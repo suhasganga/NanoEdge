@@ -4,7 +4,7 @@ import time
 
 import pytest
 
-from hft.core.types import MarketTick, OHLCV
+from nanoedge.core.types import MarketTick, OHLCV
 
 
 @pytest.fixture

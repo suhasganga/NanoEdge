@@ -8,7 +8,7 @@ Act as an expert High-Frequency Trading Systems Architect.
 
 ## Project Overview
 
-HFT (High-Frequency Trading) platform for algorithmic trading and tick-by-tick analytics. Connects to NSE (via Fyers broker) and Binance exchanges using a hybrid Python/C++ architecture.
+NanoEdge (High-Frequency Trading) platform for algorithmic trading and tick-by-tick analytics. Connects to NSE (via Fyers broker) and Binance exchanges using a hybrid Python/C++ architecture.
 
 ## Build & Run Commands
 
@@ -84,7 +84,7 @@ All API documentation is in `downloaded_docs/`. **Always consult these files whe
 | **Order Placement/Modify** | Search for "Order Placement" in `API - FYERS.md` |
 | **Symbol Master** | Search for "Symbol Master" in `API - FYERS.md` |
 
-**Fyers TBT (Tick-by-Tick) 50-Depth** - Implementation in `hft/connectors/fyers/`:
+**Fyers TBT (Tick-by-Tick) 50-Depth** - Implementation in `nanoedge/connectors/fyers/`:
 
 | File | Purpose |
 |------|---------|
@@ -99,7 +99,7 @@ All API documentation is in `downloaded_docs/`. **Always consult these files whe
 
 **TBT Connection Pool Usage:**
 ```python
-from hft.connectors.fyers import FyersTBTConnectionPool
+from nanoedge.connectors.fyers import FyersTBTConnectionPool
 
 pool = FyersTBTConnectionPool(
     app_id="your_app_id",
@@ -475,8 +475,8 @@ import structlog
 from fastapi import FastAPI
 
 # 3. Local application imports
-from hft.core.types import MarketTick
-from hft.connectors.binance import BinanceConnector
+from nanoedge.core.types import MarketTick
+from nanoedge.connectors.binance import BinanceConnector
 ```
 
 ### Formatting Rules
@@ -514,7 +514,7 @@ async def process_tick(
 ## Project Structure
 
 ```
-hft/
+nanoedge/
 ├── connectors/      # Exchange WebSocket/REST clients (Fyers, Binance)
 ├── core/            # Types, ring buffers, OHLCV aggregators
 ├── strategies/      # Trading signal generators
@@ -987,7 +987,7 @@ mainSeries.update(candle);
 @kline_1m stream → Kline Handler → QuestDB (only when is_closed=true)
 ```
 
-**Implementation** (`hft/api/dependencies.py`):
+**Implementation** (`nanoedge/api/dependencies.py`):
 
 ```python
 def handle_tick(tick: MarketTick) -> None:
@@ -1090,10 +1090,10 @@ GET /api/symbols/stats
 ### Symbol Service Architecture
 
 ```python
-from hft.symbols.service import SymbolMasterService, get_symbol_service
+from nanoedge.symbols.service import SymbolMasterService, get_symbol_service
 
 # Initialize on startup (auto-refreshes from exchanges)
-service = SymbolMasterService(db_path="hft/data/symbols.db")
+service = SymbolMasterService(db_path="nanoedge/data/symbols.db")
 await service.initialize(refresh=True)
 
 # Search symbols (<1ms latency)
@@ -1110,7 +1110,7 @@ total = service.get_count()
 binance_count = service.get_count(exchange="binance")
 ```
 
-**Storage**: SQLite database (`hft/data/symbols.db`) with in-memory indexes for O(1) lookups and prefix search
+**Storage**: SQLite database (`nanoedge/data/symbols.db`) with in-memory indexes for O(1) lookups and prefix search
 
 ### Auto-Backfill on Startup & Symbol Switch
 
@@ -1220,7 +1220,7 @@ User pans chart → GET /api/history?end_time=X
 ### Gap Detection (`storage/gap_fill.py`)
 
 ```python
-from hft.storage.gap_fill import detect_gaps, fetch_missing_candles, backfill_gaps
+from nanoedge.storage.gap_fill import detect_gaps, fetch_missing_candles, backfill_gaps
 
 # Detect time gaps in candle data
 gaps = detect_gaps(candles, interval="1m")
@@ -1269,7 +1269,7 @@ POST /api/backfill?symbol=BTCUSDT&hours=24
 ```bash
 # Backend tests (Python)
 uv run pytest
-uv run pytest --cov=hft --cov-report=html
+uv run pytest --cov=nanoedge --cov-report=html
 uv run pytest tests/test_aggregator.py -v
 uv run pytest tests/benchmarks/ --benchmark-only
 

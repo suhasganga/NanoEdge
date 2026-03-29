@@ -74,7 +74,7 @@ export const Header: Component<HeaderProps> = (props) => {
     <header class="flex h-14 items-center justify-between border-b border-border bg-card px-4 gap-4 overflow-x-auto">
       {/* Logo / Title */}
       <div class="flex items-center gap-4 shrink-0">
-        <h1 class="text-lg font-semibold">HFT Platform</h1>
+        <h1 class="text-lg font-semibold">NanoEdge</h1>
       </div>
 
       {/* Controls */}

@@ -1,10 +1,12 @@
 /**
  * WebSocket hook for real-time order updates.
  *
- * Connects to /ws/orders/{symbol} and maintains order/position state.
+ * Connects to /api/mm/ws/orders/{symbol} and maintains order/position state.
+ * Follows the same pattern as useWebSocket.ts (connectionId, arraybuffer,
+ * no reactive writes inside createEffect).
  */
 
-import { createEffect, onCleanup, Accessor } from "solid-js";
+import { createEffect, onCleanup, Accessor, untrack } from "solid-js";
 import { orderStore } from "./orderStore";
 import type {
   OrderWebSocketMsg,
@@ -16,8 +18,6 @@ import type {
 interface UseOrdersWebSocketOptions {
   /** Function returning the current symbol */
   symbol: Accessor<string>;
-  /** API host override (defaults to window.location.host) */
-  host?: string;
 }
 
 interface UseOrdersWebSocketReturn {
@@ -34,84 +34,21 @@ interface UseOrdersWebSocketReturn {
 export function useOrdersWebSocket(
   options: UseOrdersWebSocketOptions
 ): UseOrdersWebSocketReturn {
-  const { symbol, host } = options;
-
   let ws: WebSocket | null = null;
   let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   let reconnectAttempts = 0;
+  let connectionId = 0;
   const MAX_RECONNECT_ATTEMPTS = 10;
-  const BASE_RECONNECT_DELAY = 1000;
+  const RECONNECT_INTERVAL = 3000;
 
-  const getWsUrl = (sym: string): string => {
-    const wsHost = host || window.location.host;
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    return `${protocol}//${wsHost}/api/mm/ws/orders/${sym}`;
-  };
-
-  const connect = (sym: string) => {
-    if (!sym) return;
-
-    // Close existing connection
-    if (ws) {
-      ws.close();
-      ws = null;
-    }
-
-    // Clear any pending reconnect
-    if (reconnectTimeout) {
-      clearTimeout(reconnectTimeout);
-      reconnectTimeout = null;
-    }
-
-    orderStore.setSymbol(sym);
-
-    const url = getWsUrl(sym);
-    console.log(`[OrdersWS] Connecting to ${url}`);
-
-    try {
-      ws = new WebSocket(url);
-    } catch (e) {
-      console.error("[OrdersWS] Failed to create WebSocket:", e);
-      scheduleReconnect(sym);
-      return;
-    }
-
-    ws.onopen = () => {
-      console.log(`[OrdersWS] Connected to ${sym}`);
-      orderStore.setIsConnected(true);
-      reconnectAttempts = 0;
-    };
-
-    ws.onclose = (event) => {
-      console.log(`[OrdersWS] Disconnected from ${sym}:`, event.code);
-      orderStore.setIsConnected(false);
-
-      // Reconnect if not intentionally closed
-      if (event.code !== 1000 && symbol() === sym) {
-        scheduleReconnect(sym);
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error("[OrdersWS] Error:", error);
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const msg: OrderWebSocketMsg = JSON.parse(event.data);
-        handleMessage(msg);
-      } catch (e) {
-        console.error("[OrdersWS] Failed to parse message:", e);
-      }
-    };
-  };
+  const textDecoder = new TextDecoder();
 
   const handleMessage = (msg: OrderWebSocketMsg) => {
     switch (msg.type) {
       case "orders_snapshot":
         orderStore.syncFromSnapshot({
-          orders: msg.orders as SimulatedOrder[],
-          position: msg.position as SimulatedPosition | null,
+          orders: msg.orders as unknown as SimulatedOrder[],
+          position: msg.position as unknown as SimulatedPosition | null,
         });
         break;
 
@@ -128,7 +65,6 @@ export function useOrdersWebSocket(
         break;
 
       case "heartbeat":
-        // Ignore heartbeat
         break;
 
       default:
@@ -136,54 +72,94 @@ export function useOrdersWebSocket(
     }
   };
 
-  const scheduleReconnect = (sym: string) => {
-    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-      console.error("[OrdersWS] Max reconnect attempts reached");
-      return;
+  const connect = (url: string) => {
+    const currentConnectionId = ++connectionId;
+
+    try {
+      ws = new WebSocket(url);
+      ws.binaryType = "arraybuffer";
+
+      ws.onopen = () => {
+        if (currentConnectionId !== connectionId) return;
+        console.log(`[OrdersWS] Connected`);
+        orderStore.setIsConnected(true);
+        reconnectAttempts = 0;
+      };
+
+      ws.onmessage = (event) => {
+        if (currentConnectionId !== connectionId) return;
+        try {
+          const text =
+            event.data instanceof ArrayBuffer
+              ? textDecoder.decode(event.data)
+              : event.data;
+          const msg: OrderWebSocketMsg = JSON.parse(text);
+          handleMessage(msg);
+        } catch (e) {
+          console.error("[OrdersWS] Failed to parse message:", e);
+        }
+      };
+
+      ws.onerror = () => {
+        if (currentConnectionId !== connectionId) return;
+      };
+
+      ws.onclose = (event) => {
+        if (currentConnectionId !== connectionId) return;
+        orderStore.setIsConnected(false);
+        console.log(`[OrdersWS] Closed: ${event.code} ${event.reason}`);
+
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+          const delay = Math.min(
+            RECONNECT_INTERVAL * Math.pow(2, reconnectAttempts),
+            30000
+          );
+          console.log(
+            `[OrdersWS] Reconnecting in ${delay}ms (attempt ${reconnectAttempts + 1})`
+          );
+          reconnectTimeout = setTimeout(() => {
+            reconnectAttempts++;
+            connect(url);
+          }, delay);
+        }
+      };
+    } catch (e) {
+      console.error("[OrdersWS] Connection error:", e);
     }
-
-    const delay = Math.min(
-      BASE_RECONNECT_DELAY * Math.pow(2, reconnectAttempts),
-      30000
-    );
-    reconnectAttempts++;
-
-    console.log(
-      `[OrdersWS] Reconnecting in ${delay}ms (attempt ${reconnectAttempts})`
-    );
-
-    reconnectTimeout = setTimeout(() => {
-      if (symbol() === sym) {
-        connect(sym);
-      }
-    }, delay);
   };
 
   const disconnect = () => {
+    connectionId++;
     if (reconnectTimeout) {
       clearTimeout(reconnectTimeout);
       reconnectTimeout = null;
     }
-
     if (ws) {
-      ws.close(1000);
+      ws.close();
       ws = null;
     }
-
     orderStore.setIsConnected(false);
   };
 
-  // Effect to manage connection on symbol change
+  // Build URL from symbol - same pattern as useCandleWebSocket etc.
+  const getUrl = (sym: string): string => {
+    if (!sym) return "";
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const host = window.location.host;
+    return `${protocol}//${host}/api/mm/ws/orders/${sym}`;
+  };
+
+  // Effect to handle symbol changes - matches useWebSocket.ts exactly
   createEffect(() => {
-    const sym = symbol();
+    const sym = options.symbol();
+    // All store writes use untrack to avoid reactive dependency tracking
+    disconnect();
     if (sym) {
-      connect(sym);
-    } else {
-      disconnect();
+      untrack(() => orderStore.setSymbol(sym));
+      connect(getUrl(sym));
     }
   });
 
-  // Cleanup on unmount
   onCleanup(() => {
     disconnect();
   });

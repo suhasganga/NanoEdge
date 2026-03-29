@@ -5,9 +5,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from hft.connectors.binance.rest_client import BinanceRestClient
-from hft.connectors.binance.types import BinanceDepthSnapshot
-from hft.core.exceptions import ExchangeError
+from nanoedge.connectors.binance.rest_client import BinanceRestClient
+from nanoedge.connectors.binance.types import BinanceDepthSnapshot
+from nanoedge.core.exceptions import ExchangeError
 
 
 class TestBinanceRestClientInit:

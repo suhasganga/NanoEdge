@@ -9,11 +9,16 @@
  * Following the pattern of frontend/src/lib/priceLines.ts
  */
 
-import type {
-  ISeriesApi,
-  IPriceLine,
-  CreatePriceLineOptions,
-  SeriesType,
+import {
+  createSeriesMarkers,
+  type ISeriesApi,
+  type IPriceLine,
+  type CreatePriceLineOptions,
+  type SeriesType,
+  type SeriesMarker,
+  type Time,
+  type UTCTimestamp,
+  type ISeriesMarkersPluginApi,
 } from "lightweight-charts";
 import type { SimulatedOrder, SimulatedPosition, OrderFill } from "./types";
 
@@ -26,14 +31,14 @@ export const LineStyle = {
   SparseDotted: 4,
 } as const;
 
-// Color constants
+// Color constants - Brighter colors for better visibility
 const COLORS = {
-  buyOrder: "#26a69a", // Green for buy orders
-  sellOrder: "#ef5350", // Red for sell orders
-  longPosition: "#2962FF", // Blue for long position
-  shortPosition: "#9c27b0", // Purple for short position
-  fillBuy: "#26a69a",
-  fillSell: "#ef5350",
+  buyOrder: "#00C853", // Bright green for buy orders (was #26a69a)
+  sellOrder: "#FF5252", // Bright red for sell orders (was #ef5350)
+  longPosition: "#2979FF", // Bright blue for long position
+  shortPosition: "#E040FB", // Bright purple for short position
+  fillBuy: "#00E676", // Even brighter green for fill markers
+  fillSell: "#FF1744", // Even brighter red for fill markers
 } as const;
 
 interface OrderLineConfig {
@@ -55,11 +60,39 @@ export class OrderOverlayManager {
   // Position average entry line
   private positionLine: IPriceLine | null = null;
 
-  // Track current position state for updates
-  private currentPositionQty: number = 0;
+  // Fill markers on chart (v5.x uses plugin system)
+  private fillMarkers: SeriesMarker<Time>[] = [];
+  private markersPlugin: ISeriesMarkersPluginApi<Time> | null = null;
+
+  // Optional time transform function (for timezone support)
+  private timeTransform: ((utcTime: number) => number) | null = null;
+
+  // Dynamic price precision (set from chart based on asset price magnitude)
+  private pricePrecision: number = 2;
 
   constructor(series: ISeriesApi<SeriesType>) {
     this.series = series;
+    // Initialize markers plugin (v5.x API)
+    this.markersPlugin = createSeriesMarkers(series, []);
+  }
+
+  /**
+   * Set price precision for formatting labels (called by Chart.tsx when data loads)
+   */
+  setPricePrecision(precision: number): void {
+    this.pricePrecision = precision;
+  }
+
+  /** Format a price using current precision */
+  private fmtPrice(price: number): string {
+    return price.toFixed(this.pricePrecision);
+  }
+
+  /**
+   * Set time transform function (for timezone conversion)
+   */
+  setTimeTransform(transform: (utcTime: number) => number): void {
+    this.timeTransform = transform;
   }
 
   /**
@@ -100,7 +133,7 @@ export class OrderOverlayManager {
     const lineOptions: CreatePriceLineOptions = {
       price: order.price,
       color: color,
-      lineWidth: 1,
+      lineWidth: 2, // Thicker for visibility (was 1)
       lineStyle: LineStyle.Dashed,
       axisLabelVisible: true,
       title: title,
@@ -155,11 +188,8 @@ export class OrderOverlayManager {
 
     // Don't show line if no position or zero quantity
     if (avgPrice === null || avgPrice === 0 || quantity === 0) {
-      this.currentPositionQty = 0;
       return;
     }
-
-    this.currentPositionQty = quantity;
 
     const color = quantity > 0 ? COLORS.longPosition : COLORS.shortPosition;
     const side = quantity > 0 ? "LONG" : "SHORT";
@@ -170,8 +200,8 @@ export class OrderOverlayManager {
     const lineOptions: CreatePriceLineOptions = {
       price: avgPrice,
       color: color,
-      lineWidth: 2,
-      lineStyle: LineStyle.Dotted,
+      lineWidth: 3, // Even thicker for position (was 2)
+      lineStyle: LineStyle.Solid, // Solid line for position (was Dotted)
       axisLabelVisible: true,
       title: `${side} ${qtyDisplay}`,
     };
@@ -253,6 +283,103 @@ export class OrderOverlayManager {
   }
 
   /**
+   * Sync fill markers on chart
+   * Shows buy/sell arrows where orders were filled
+   */
+  syncFills(fills: OrderFill[]): void {
+    // Keep last 50 markers to avoid clutter
+    const recentFills = fills.slice(-50);
+
+    // Sort by timestamp ascending (REQUIRED by TradingView Lightweight Charts)
+    const sortedFills = [...recentFills].sort((a, b) => a.timestamp - b.timestamp);
+
+    this.fillMarkers = sortedFills.map((fill) => {
+      // Convert fill timestamp to chart time
+      // Backend sends timestamp in ms, convert to seconds for chart
+      let time = fill.timestamp > 1e12 ? Math.floor(fill.timestamp / 1000) : fill.timestamp;
+
+      // Floor to 1-minute candle period for proper alignment with chart bars
+      time = Math.floor(time / 60) * 60;
+
+      // Apply time transform if set (for timezone support)
+      if (this.timeTransform) {
+        time = this.timeTransform(time);
+      }
+
+      return {
+        time: time as UTCTimestamp,
+        position: fill.side === "buy" ? "belowBar" : "aboveBar",
+        color: fill.side === "buy" ? COLORS.fillBuy : COLORS.fillSell,
+        shape: fill.side === "buy" ? "arrowUp" : "arrowDown",
+        text: `${fill.side.toUpperCase()} ${fill.quantity.toFixed(4)} @ ${this.fmtPrice(fill.price)}`,
+        size: 2, // Larger markers for visibility
+      } as SeriesMarker<Time>;
+    });
+
+    try {
+      // Use markers plugin API (v5.x)
+      if (this.markersPlugin) {
+        this.markersPlugin.setMarkers(this.fillMarkers);
+      }
+    } catch (e) {
+      console.error("[OrderOverlay] Failed to set fill markers:", e);
+    }
+  }
+
+  /**
+   * Add a single fill marker
+   */
+  addFillMarker(fill: OrderFill): void {
+    let time = fill.timestamp > 1e12 ? Math.floor(fill.timestamp / 1000) : fill.timestamp;
+
+    // Floor to 1-minute candle period for proper alignment
+    time = Math.floor(time / 60) * 60;
+
+    if (this.timeTransform) {
+      time = this.timeTransform(time);
+    }
+
+    this.fillMarkers.push({
+      time: time as UTCTimestamp,
+      position: fill.side === "buy" ? "belowBar" : "aboveBar",
+      color: fill.side === "buy" ? COLORS.fillBuy : COLORS.fillSell,
+      shape: fill.side === "buy" ? "arrowUp" : "arrowDown",
+      text: `${fill.side.toUpperCase()} ${fill.quantity.toFixed(4)} @ ${this.fmtPrice(fill.price)}`,
+      size: 2, // Larger markers for visibility
+    } as SeriesMarker<Time>);
+
+    // Keep only last 50 markers
+    if (this.fillMarkers.length > 50) {
+      this.fillMarkers = this.fillMarkers.slice(-50);
+    }
+
+    // Sort markers by time (required by TradingView)
+    this.fillMarkers.sort((a, b) => (a.time as number) - (b.time as number));
+
+    try {
+      if (this.markersPlugin) {
+        this.markersPlugin.setMarkers(this.fillMarkers);
+      }
+    } catch (e) {
+      console.error("[OrderOverlay] Failed to add fill marker:", e);
+    }
+  }
+
+  /**
+   * Clear fill markers
+   */
+  clearFillMarkers(): void {
+    this.fillMarkers = [];
+    try {
+      if (this.markersPlugin) {
+        this.markersPlugin.setMarkers([]);
+      }
+    } catch (e) {
+      // Series may be removed
+    }
+  }
+
+  /**
    * Clear all overlays
    */
   clear(): void {
@@ -263,6 +390,9 @@ export class OrderOverlayManager {
 
     // Remove position line
     this.setPositionLine(null, 0);
+
+    // Clear fill markers
+    this.clearFillMarkers();
   }
 
   /**
@@ -297,11 +427,30 @@ export class OrderOverlayManager {
       }
     }
 
-    // Clear from old series
-    this.clear();
+    // Store fill markers
+    const savedMarkers = [...this.fillMarkers];
+
+    // Clear from old series (but keep markers in memory)
+    for (const orderId of this.orderLines.keys()) {
+      this.removeOrderLine(orderId);
+    }
+    this.setPositionLine(null, 0);
+
+    // Detach old markers plugin
+    if (this.markersPlugin) {
+      try {
+        this.markersPlugin.detach();
+      } catch (e) {
+        // Plugin may already be detached
+      }
+      this.markersPlugin = null;
+    }
 
     // Update series reference
     this.series = series;
+
+    // Create new markers plugin for new series
+    this.markersPlugin = createSeriesMarkers(series, []);
 
     // Recreate order lines on new series
     for (const { id, options } of currentOrders) {
@@ -319,6 +468,16 @@ export class OrderOverlayManager {
         this.positionLine = this.series.createPriceLine(positionOptions);
       } catch (e) {
         console.error("[OrderOverlay] Failed to recreate position line:", e);
+      }
+    }
+
+    // Restore fill markers on new series
+    this.fillMarkers = savedMarkers;
+    if (this.fillMarkers.length > 0 && this.markersPlugin) {
+      try {
+        this.markersPlugin.setMarkers(this.fillMarkers);
+      } catch (e) {
+        console.error("[OrderOverlay] Failed to restore fill markers:", e);
       }
     }
   }

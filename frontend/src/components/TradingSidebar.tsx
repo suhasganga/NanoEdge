@@ -3,7 +3,7 @@ import { Tabs } from "~/components/ui/Tabs";
 import { MarketStatsBar } from "./MarketStatsBar";
 import { OrderBook } from "./OrderBook";
 import { RecentTrades } from "./RecentTrades";
-import { MyOrders } from "./MyOrders";
+import { MyOrders } from "~/mm/MyOrders";
 
 interface TradingSidebarProps {
   symbol: string;
@@ -26,7 +26,7 @@ export const TradingSidebar: Component<TradingSidebarProps> = (props) => {
         <Tabs.List class="shrink-0 border-b border-border">
           <Tabs.Trigger value="book">Book</Tabs.Trigger>
           <Tabs.Trigger value="trades">Trades</Tabs.Trigger>
-          <Tabs.Trigger value="orders" disabled>
+          <Tabs.Trigger value="orders">
             My Orders
           </Tabs.Trigger>
         </Tabs.List>
@@ -40,7 +40,7 @@ export const TradingSidebar: Component<TradingSidebarProps> = (props) => {
         </Tabs.Content>
 
         <Tabs.Content value="orders" class="flex-1 min-h-0 overflow-hidden">
-          <MyOrders />
+          <MyOrders symbol={props.symbol} />
         </Tabs.Content>
       </Tabs.Root>
     </div>

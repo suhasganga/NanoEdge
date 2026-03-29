@@ -29,6 +29,10 @@ import { useCandleWebSocket, CandleData } from "~/hooks/useWebSocket";
 import { IndicatorManager } from "~/lib/indicators";
 import { PriceLineManager } from "~/lib/priceLines";
 import { cn } from "~/lib/utils";
+import { OrderOverlayManager } from "~/mm/orderOverlay";
+import { useOrdersWebSocket } from "~/mm/useOrdersWebSocket";
+import { orderStore } from "~/mm/orderStore";
+import type { OrderFill } from "~/mm/types";
 import {
   settings,
   type ChartSettings,
@@ -194,14 +198,71 @@ export const Chart: Component<ChartProps> = (props) => {
   let volumeSeries: ISeriesApi<"Histogram"> | undefined;
   let indicatorManager: IndicatorManager | undefined;
   let priceLineManager: PriceLineManager | undefined;
+  let orderOverlayManager: OrderOverlayManager | undefined;
   let abortController: AbortController | undefined;
   let chartApiRef: ChartApi | undefined;
+
+  // Orders WebSocket connection
+  const { isConnected: ordersConnected } = useOrdersWebSocket({
+    symbol: () => props.symbol,
+  });
 
   const [isLoading, setIsLoading] = createSignal(true);
   const [error, setError] = createSignal<string | null>(null);
   const [chartType, setChartTypeState] = createSignal<ChartType>(props.chartType ?? "candlestick");
   const [legendData, setLegendData] = createSignal<LegendData | null>(null);
   const [tooltipData, setTooltipData] = createSignal<TooltipData | null>(null);
+  const [fillFlash, setFillFlash] = createSignal<OrderFill | null>(null);
+
+  // Dynamic price precision based on price magnitude (replicates TradingView behavior)
+  let pricePrecision = 2;
+  let priceMinMove = 0.01;
+
+  /**
+   * Derive decimal precision from a representative price.
+   * Matches how TradingView adapts the price scale for different assets:
+   * - BTCUSDT (~90000) → 2 decimals
+   * - ETHUSDT (~3000)  → 2 decimals
+   * - DOGEUSDT (~0.12) → 5 decimals
+   * - SHIBUSDT (~0.00001) → 8 decimals
+   */
+  const updatePricePrecision = (price: number) => {
+    if (price <= 0) return;
+    if (price >= 1000) {
+      pricePrecision = 2;
+    } else if (price >= 100) {
+      pricePrecision = 3;
+    } else if (price >= 1) {
+      pricePrecision = 4;
+    } else if (price >= 0.01) {
+      pricePrecision = 5;
+    } else if (price >= 0.0001) {
+      pricePrecision = 6;
+    } else {
+      pricePrecision = 8;
+    }
+    priceMinMove = Math.pow(10, -pricePrecision);
+  };
+
+  /** Format a price value using the current precision */
+  const fmtPrice = (price: number): string => price.toFixed(pricePrecision);
+
+  /** Apply current price format to the main series and overlay */
+  const applyPriceFormat = () => {
+    if (mainSeries) {
+      mainSeries.applyOptions({
+        priceFormat: {
+          type: "price",
+          precision: pricePrecision,
+          minMove: priceMinMove,
+        },
+      });
+    }
+    orderOverlayManager?.setPricePrecision(pricePrecision);
+  };
+
+  // Track previous fill count for detecting new fills
+  let prevFillCount = 0;
 
   // WebSocket for real-time updates
   const { data: wsData } = useCandleWebSocket(() => props.symbol);
@@ -278,12 +339,8 @@ export const Chart: Component<ChartProps> = (props) => {
     return toSingleValue(candleData);
   };
 
-  // Format price
-  const formatPrice = (price: number): string => {
-    if (price >= 1000) return price.toFixed(2);
-    if (price >= 1) return price.toFixed(4);
-    return price.toFixed(6);
-  };
+  // Format price using dynamic precision
+  const formatPrice = (price: number): string => fmtPrice(price);
 
   // Format volume
   const formatVolume = (value: number): string => {
@@ -426,6 +483,13 @@ export const Chart: Component<ChartProps> = (props) => {
 
       if (mainSeries && volumeSeries && Array.isArray(data)) {
         candleData = data;
+
+        // Derive price precision from first candle close price
+        if (data.length > 0) {
+          updatePricePrecision(data[data.length - 1].close);
+          applyPriceFormat();
+        }
+
         mainSeries.setData(getFormattedData() as any);
         updateVolumeData();
         indicatorManager?.update(candleData);
@@ -548,6 +612,10 @@ export const Chart: Component<ChartProps> = (props) => {
     // Initialize price line manager
     if (mainSeries) {
       priceLineManager = new PriceLineManager(mainSeries);
+
+      // Initialize order overlay manager for MM visualization
+      orderOverlayManager = new OrderOverlayManager(mainSeries);
+      orderOverlayManager.setTimeTransform(transformTime);
     }
 
     // Subscribe to crosshair move
@@ -598,12 +666,18 @@ export const Chart: Component<ChartProps> = (props) => {
         // Pass type directly to avoid signal timing issues during rapid switching
         setChartTypeState(type);
         createMainSeries(type);
+        applyPriceFormat();
 
         // Re-initialize price line manager with new series
         // mainSeries is reassigned by createMainSeries - use type assertion
         if (mainSeries !== undefined) {
           const series = mainSeries as ISeriesApi<SeriesType>;
           priceLineManager = new PriceLineManager(series);
+
+          // Update order overlay manager with new series
+          if (orderOverlayManager) {
+            orderOverlayManager.updateSeries(series);
+          }
 
           // Restore data - pass type directly
           if (candleData.length > 0) {
@@ -809,6 +883,7 @@ export const Chart: Component<ChartProps> = (props) => {
 
     onCleanup(() => {
       resizeObserver.disconnect();
+      orderOverlayManager?.clear();
       chart?.remove();
     });
 
@@ -828,6 +903,7 @@ export const Chart: Component<ChartProps> = (props) => {
       mainSeries?.setData([]);
       volumeSeries?.setData([]);
       indicatorManager?.clear();
+      orderOverlayManager?.clear();
       loadData();
     }
   });
@@ -929,6 +1005,53 @@ export const Chart: Component<ChartProps> = (props) => {
       indicatorManager?.update(candleData);
     }
   });
+
+  // Sync order overlay with orderStore
+  createEffect(() => {
+    const orders = orderStore.orders();
+    if (orderOverlayManager) {
+      orderOverlayManager.syncOrders(orders);
+    }
+  });
+
+  // Sync position overlay
+  createEffect(() => {
+    const position = orderStore.position();
+    if (orderOverlayManager) {
+      orderOverlayManager.syncPosition(position);
+    }
+  });
+
+  // Sync fill markers and show flash notification for new fills
+  createEffect(() => {
+    const fills = orderStore.fills();
+    if (orderOverlayManager) {
+      orderOverlayManager.syncFills(fills);
+    }
+
+    // Show flash notification for new fills
+    if (fills.length > prevFillCount) {
+      const newFills = fills.slice(prevFillCount);
+      // Show the most recent fill
+      const latestFill = newFills[newFills.length - 1];
+      if (latestFill) {
+        setFillFlash(latestFill);
+        setTimeout(() => setFillFlash(null), 2500);
+      }
+    }
+    prevFillCount = fills.length;
+  });
+
+  // Format P&L value
+  const formatPnL = (n: number) => {
+    const sign = n >= 0 ? "+" : "";
+    return `${sign}${n.toFixed(2)}`;
+  };
+
+  const formatQty = (n: number) => {
+    if (Math.abs(n) >= 1) return Math.abs(n).toFixed(4);
+    return Math.abs(n).toPrecision(4);
+  };
 
   return (
     <div class="relative h-full w-full bg-[#131722]">
@@ -1060,6 +1183,76 @@ export const Chart: Component<ChartProps> = (props) => {
             </div>
           );
         }}
+      </Show>
+
+      {/* P&L Overlay for Market Making */}
+      <Show when={orderStore.position()}>
+        {(pos) => {
+          const position = pos();
+          if (!position || position.quantity === 0) return null;
+          return (
+            <div class="absolute top-3 right-3 z-10 rounded bg-[#1e222d]/95 px-3 py-2 text-xs font-mono shadow-lg border border-border">
+              <div class="flex items-center gap-3 mb-1">
+                <span
+                  class={cn(
+                    "font-semibold",
+                    position.quantity > 0 ? "text-green-500" : "text-red-500"
+                  )}
+                >
+                  {position.quantity > 0 ? "LONG" : "SHORT"} {formatQty(position.quantity)}
+                </span>
+                <span class="text-muted-foreground">@</span>
+                <span class="text-foreground">{fmtPrice(position.avg_entry_price)}</span>
+                <span
+                  class={cn(
+                    "h-2 w-2 rounded-full",
+                    ordersConnected() ? "bg-green-500" : "bg-red-500"
+                  )}
+                  title={ordersConnected() ? "Orders WS connected" : "Orders WS disconnected"}
+                />
+              </div>
+              <div class="flex gap-3 text-[11px]">
+                <span class="text-muted-foreground">Real:</span>
+                <span class={position.realized_pnl >= 0 ? "text-green-500" : "text-red-500"}>
+                  {formatPnL(position.realized_pnl)}
+                </span>
+                <span class="text-muted-foreground">Unreal:</span>
+                <span class={position.unrealized_pnl >= 0 ? "text-green-500" : "text-red-500"}>
+                  {formatPnL(position.unrealized_pnl)}
+                </span>
+                <span class="text-muted-foreground font-medium">Total:</span>
+                <span
+                  class={cn(
+                    "font-bold",
+                    position.realized_pnl + position.unrealized_pnl >= 0
+                      ? "text-green-500"
+                      : "text-red-500"
+                  )}
+                >
+                  {formatPnL(position.realized_pnl + position.unrealized_pnl)}
+                </span>
+              </div>
+            </div>
+          );
+        }}
+      </Show>
+
+      {/* Fill Flash Notification */}
+      <Show when={fillFlash()}>
+        {(fill) => (
+          <div
+            class={cn(
+              "absolute top-16 right-3 z-20 px-4 py-2 rounded-lg shadow-lg",
+              "border-2 text-sm font-mono animate-pulse",
+              fill().side === "buy"
+                ? "bg-green-900/90 border-green-500 text-green-100"
+                : "bg-red-900/90 border-red-500 text-red-100"
+            )}
+          >
+            <div class="font-bold">{fill().side.toUpperCase()} FILLED</div>
+            <div>{fill().quantity.toFixed(4)} @ {fmtPrice(fill().price)}</div>
+          </div>
+        )}
       </Show>
 
       {/* Chart container */}

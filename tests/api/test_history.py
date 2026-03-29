@@ -7,13 +7,13 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from hft.api.history import (
+from nanoedge.api.history import (
     _aggregate_candles,
     _calculate_stats_from_formatted,
     calculate_stats_from_candles,
     router,
 )
-from hft.core.types import OHLCV, MarketStats
+from nanoedge.core.types import OHLCV, MarketStats
 
 
 @pytest.fixture
@@ -340,7 +340,7 @@ class TestGetHistoryEndpoint:
 
     def test_invalid_interval_returns_400(self, app, mock_app_state):
         """Invalid interval returns 400 error."""
-        with patch("hft.api.history.app_state", mock_app_state):
+        with patch("nanoedge.api.history.app_state", mock_app_state):
             client = TestClient(app)
             response = client.get("/history?symbol=BTCUSDT&interval=2m")
 
@@ -351,7 +351,7 @@ class TestGetHistoryEndpoint:
         """No database returns 503 error."""
         mock_app_state.questdb = None
 
-        with patch("hft.api.history.app_state", mock_app_state):
+        with patch("nanoedge.api.history.app_state", mock_app_state):
             client = TestClient(app)
             response = client.get("/history?symbol=BTCUSDT")
 
@@ -373,7 +373,7 @@ class TestGetHistoryEndpoint:
             ]
         )
 
-        with patch("hft.api.history.app_state", mock_app_state):
+        with patch("nanoedge.api.history.app_state", mock_app_state):
             client = TestClient(app)
             response = client.get("/history?symbol=BTCUSDT&interval=1m&limit=10")
 
@@ -387,7 +387,7 @@ class TestGetHistoryEndpoint:
         """Symbol parameter is uppercased."""
         mock_app_state.questdb.query_candles = AsyncMock(return_value=[])
 
-        with patch("hft.api.history.app_state", mock_app_state):
+        with patch("nanoedge.api.history.app_state", mock_app_state):
             client = TestClient(app)
             response = client.get("/history?symbol=btcusdt")
 
@@ -409,7 +409,7 @@ class TestGetHistoryEndpoint:
             ]
         )
 
-        with patch("hft.api.history.app_state", mock_app_state):
+        with patch("nanoedge.api.history.app_state", mock_app_state):
             client = TestClient(app)
             response = client.get("/history?symbol=BTCUSDT")
 
@@ -422,7 +422,7 @@ class TestGetHistoryEndpoint:
         """Backfill can be disabled."""
         mock_app_state.questdb.query_candles = AsyncMock(return_value=[])
 
-        with patch("hft.api.history.app_state", mock_app_state):
+        with patch("nanoedge.api.history.app_state", mock_app_state):
             client = TestClient(app)
             response = client.get("/history?symbol=BTCUSDT&backfill=false")
 
@@ -437,7 +437,7 @@ class TestBackfillEndpoint:
         """No database returns 503 error."""
         mock_app_state.questdb = None
 
-        with patch("hft.api.history.app_state", mock_app_state):
+        with patch("nanoedge.api.history.app_state", mock_app_state):
             client = TestClient(app)
             response = client.post("/backfill?symbol=BTCUSDT&hours=24")
 
@@ -448,8 +448,8 @@ class TestBackfillEndpoint:
         mock_app_state.rest_client = None
         mock_app_state.binance_rest_client = None
 
-        with patch("hft.api.history.app_state", mock_app_state):
-            with patch("hft.api.history.infer_exchange_from_symbol") as mock_infer:
+        with patch("nanoedge.api.history.app_state", mock_app_state):
+            with patch("nanoedge.api.history.infer_exchange_from_symbol") as mock_infer:
                 mock_infer.return_value = ("binance", "spot")
                 client = TestClient(app)
                 response = client.post("/backfill?symbol=BTCUSDT&hours=24")
@@ -460,8 +460,8 @@ class TestBackfillEndpoint:
         """Successful backfill returns count."""
         mock_app_state.questdb.write_candles_batch = MagicMock(return_value=1440)
 
-        with patch("hft.api.history.app_state", mock_app_state):
-            with patch("hft.api.history.fetch_missing_candles", new_callable=AsyncMock) as mock_fetch:
+        with patch("nanoedge.api.history.app_state", mock_app_state):
+            with patch("nanoedge.api.history.fetch_missing_candles", new_callable=AsyncMock) as mock_fetch:
                 mock_fetch.return_value = [MagicMock()] * 1440
 
                 client = TestClient(app)
@@ -476,8 +476,8 @@ class TestBackfillEndpoint:
 
     def test_no_data_response(self, app, mock_app_state):
         """No data returns no_data status."""
-        with patch("hft.api.history.app_state", mock_app_state):
-            with patch("hft.api.history.fetch_missing_candles", new_callable=AsyncMock) as mock_fetch:
+        with patch("nanoedge.api.history.app_state", mock_app_state):
+            with patch("nanoedge.api.history.fetch_missing_candles", new_callable=AsyncMock) as mock_fetch:
                 mock_fetch.return_value = []
 
                 client = TestClient(app)
@@ -493,8 +493,8 @@ class TestBackfillEndpoint:
         mock_app_state.fyers_rest_client = MagicMock()
         mock_app_state.questdb.write_candles_batch = MagicMock(return_value=100)
 
-        with patch("hft.api.history.app_state", mock_app_state):
-            with patch("hft.api.history.fetch_missing_candles", new_callable=AsyncMock) as mock_fetch:
+        with patch("nanoedge.api.history.app_state", mock_app_state):
+            with patch("nanoedge.api.history.fetch_missing_candles", new_callable=AsyncMock) as mock_fetch:
                 mock_fetch.return_value = [MagicMock()] * 100
 
                 client = TestClient(app)
@@ -515,7 +515,7 @@ class TestGetActiveSymbolsEndpoint:
             "ETHUSDT": MagicMock(),
         }
 
-        with patch("hft.api.history.app_state", mock_app_state):
+        with patch("nanoedge.api.history.app_state", mock_app_state):
             client = TestClient(app)
             response = client.get("/active-symbols")
 
@@ -539,7 +539,7 @@ class TestGetStatusEndpoint:
 
         mock_app_state.orderbooks = {"BTCUSDT": mock_orderbook}
 
-        with patch("hft.api.history.app_state", mock_app_state):
+        with patch("nanoedge.api.history.app_state", mock_app_state):
             client = TestClient(app)
             response = client.get("/status")
 
@@ -562,7 +562,7 @@ class TestGetStatusEndpoint:
 
         mock_app_state.orderbooks = {"BTCUSDT": mock_orderbook}
 
-        with patch("hft.api.history.app_state", mock_app_state):
+        with patch("nanoedge.api.history.app_state", mock_app_state):
             client = TestClient(app)
             response = client.get("/status")
 
@@ -584,7 +584,7 @@ class TestValidIntervals:
 
         valid_intervals = ["1m", "5m", "15m", "30m", "1h", "4h", "1d"]
 
-        with patch("hft.api.history.app_state", mock_app_state):
+        with patch("nanoedge.api.history.app_state", mock_app_state):
             client = TestClient(app)
 
             for interval in valid_intervals:
@@ -593,7 +593,7 @@ class TestValidIntervals:
 
     def test_invalid_intervals_rejected(self, app, mock_app_state):
         """Invalid intervals are rejected."""
-        with patch("hft.api.history.app_state", mock_app_state):
+        with patch("nanoedge.api.history.app_state", mock_app_state):
             client = TestClient(app)
 
             invalid_intervals = ["2m", "3m", "10m", "2h", "6h", "1w", "1M"]

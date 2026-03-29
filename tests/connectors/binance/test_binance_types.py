@@ -3,7 +3,7 @@
 import msgspec
 import pytest
 
-from hft.connectors.binance.types import (
+from nanoedge.connectors.binance.types import (
     BinanceAggTrade,
     BinanceCombinedStream,
     BinanceDepthSnapshot,

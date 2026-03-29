@@ -2,8 +2,8 @@
 
 import pytest
 
-from hft.core.aggregator import StreamingOHLCV
-from hft.core.types import MarketTick
+from nanoedge.core.aggregator import StreamingOHLCV
+from nanoedge.core.types import MarketTick
 
 
 class TestStreamingOHLCV:

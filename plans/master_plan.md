@@ -404,7 +404,7 @@ Binance does not provide a direct 50-level depth stream. Full depth requires bui
 - [x] Config settings: `auto_backfill_on_startup`, `startup_backfill_days`, `backfill_on_symbol_switch`, `symbol_switch_backfill_hours`
 
 **Symbol Master Service (COMPLETE):**
-- [x] SQLite database for persistent symbol storage (`hft/data/symbols.db`)
+- [x] SQLite database for persistent symbol storage (`nanoedge/data/symbols.db`)
 - [x] In-memory indexes for O(1) lookups and prefix search (<1ms latency)
 - [x] Binance fetcher - spot, futures (perp/dated), options (3500+ symbols)
 - [x] Fyers fetcher - NSE/BSE equity, F&O, currency, commodity (190k+ symbols)
@@ -436,17 +436,17 @@ Binance does not provide a direct 50-level depth stream. Full depth requires bui
 
 **Profiling:**
 - [x] Profile with `py-spy` to identify bottlenecks (script: `scripts/profile_server.py`)
-- [x] Measure latency histograms (p50, p95, p99) (`hft/core/metrics.py` + `/api/metrics` endpoint)
+- [x] Measure latency histograms (p50, p95, p99) (`nanoedge/core/metrics.py` + `/api/metrics` endpoint)
 
 **Python Optimizations:**
 - [x] `__slots__` on all high-frequency classes (7 classes: BinanceOrderBook, BinanceWebSocketClient, BinanceFeedHandler, FyersTBTFeedHandler, FyersTBTConnectionPool, SymbolDepthState, ConnectionInfo)
-- [x] `gc.freeze()` after initialization (`hft/api/dependencies.py`)
+- [x] `gc.freeze()` after initialization (`nanoedge/api/dependencies.py`)
 - [x] Pre-allocated NumPy buffers (already optimized in `ring_buffer.py`)
-- [x] msgspec for fast JSON serialization (`hft/api/ws_types.py` + WebSocket binary output)
+- [x] msgspec for fast JSON serialization (`nanoedge/api/ws_types.py` + WebSocket binary output)
 
 **Latency Infrastructure:**
-- [x] TimestampChain for pipeline latency tracking (`hft/core/timestamps.py`)
-- [x] LatencyHistogram with rolling window (`hft/core/metrics.py`)
+- [x] TimestampChain for pipeline latency tracking (`nanoedge/core/timestamps.py`)
+- [x] LatencyHistogram with rolling window (`nanoedge/core/metrics.py`)
 - [x] MetricsCollector with p50/p95/p99/mean/min/max
 - [x] Hot path instrumentation (feed.py, websocket.py)
 - [x] Metrics API endpoint (`GET /api/metrics`)
@@ -573,7 +573,7 @@ EXCHANGE DELTA (our lag): T_now - T0
 ### Core Logging Types
 
 ```python
-# hft/core/timestamps.py
+# nanoedge/core/timestamps.py
 @dataclass(slots=True)
 class TimestampChain:
     """Nanosecond timestamps at each pipeline stage"""
@@ -645,7 +645,7 @@ logger.error("db_write_failed", table="candles_1m", error=str(e), rows_lost=coun
 **Log-Based Alerting:**
 - Log at ERROR level when any latency exceeds threshold
 - External tools (Grafana Alertmanager) handle notifications
-- Thresholds defined in `hft/core/alerts.py`
+- Thresholds defined in `nanoedge/core/alerts.py`
 
 ### Frontend RTT Measurement
 
@@ -668,12 +668,12 @@ Server calculates:
 
 | File | Purpose |
 |------|---------|
-| `hft/core/logging.py` | structlog config with file rotation |
-| `hft/core/timestamps.py` | TimestampChain dataclass |
-| `hft/core/metrics.py` | LatencyHistogram, MetricsRegistry |
-| `hft/core/alerts.py` | Threshold checking, ERROR logging |
-| `hft/core/clock.py` | NTP sync, corrected time |
-| `hft/api/metrics.py` | `/metrics` Prometheus endpoint |
+| `nanoedge/core/logging.py` | structlog config with file rotation |
+| `nanoedge/core/timestamps.py` | TimestampChain dataclass |
+| `nanoedge/core/metrics.py` | LatencyHistogram, MetricsRegistry |
+| `nanoedge/core/alerts.py` | Threshold checking, ERROR logging |
+| `nanoedge/core/clock.py` | NTP sync, corrected time |
+| `nanoedge/api/metrics.py` | `/metrics` Prometheus endpoint |
 
 ---
 
@@ -714,7 +714,7 @@ Server calculates:
 ## Project Structure
 
 ```
-hft/
+nanoedge/
 ├── core/               # Shared types, ring buffers, aggregators
 │   ├── types.py        # MarketTick, OHLCV, Order structs
 │   ├── ring_buffer.py  # NumPy-based tick storage
@@ -823,15 +823,15 @@ start http://localhost:8000/static/index.html
 
 | File | Purpose |
 |------|---------|
-| `hft/connectors/binance/feed.py` | WebSocket client for trades/kline/ticker streams |
-| `hft/connectors/binance/orderbook.py` | Local order book manager |
-| `hft/core/aggregator.py` | StreamingOHLCV tick-to-candle |
-| `hft/core/ring_buffer.py` | NumPy-based tick storage |
-| `hft/core/types.py` | MarketTick, OHLCV, Trade, MarketStats dataclasses |
-| `hft/storage/questdb.py` | ILP writer + SQL queries |
-| `hft/api/main.py` | FastAPI app setup |
-| `hft/api/websocket.py` | Live candle/depth/trades/stats WebSocket endpoints |
-| `hft/api/history.py` | Historical candle endpoint |
+| `nanoedge/connectors/binance/feed.py` | WebSocket client for trades/kline/ticker streams |
+| `nanoedge/connectors/binance/orderbook.py` | Local order book manager |
+| `nanoedge/core/aggregator.py` | StreamingOHLCV tick-to-candle |
+| `nanoedge/core/ring_buffer.py` | NumPy-based tick storage |
+| `nanoedge/core/types.py` | MarketTick, OHLCV, Trade, MarketStats dataclasses |
+| `nanoedge/storage/questdb.py` | ILP writer + SQL queries |
+| `nanoedge/api/main.py` | FastAPI app setup |
+| `nanoedge/api/websocket.py` | Live candle/depth/trades/stats WebSocket endpoints |
+| `nanoedge/api/history.py` | Historical candle endpoint |
 | `frontend/src/App.tsx` | Root component, state management |
 | `frontend/src/components/Chart.tsx` | TradingView chart with ChartApi |
 | `frontend/src/components/Header.tsx` | Toolbar with all controls |

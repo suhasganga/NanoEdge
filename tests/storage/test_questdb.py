@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from hft.core.types import OHLCV
-from hft.storage.questdb import QuestDBClient
+from nanoedge.core.types import OHLCV
+from nanoedge.storage.questdb import QuestDBClient
 
 
 class TestQuestDBClientInit:
@@ -360,7 +360,7 @@ class TestSenderManagement:
         """First call creates new sender."""
         client = QuestDBClient()
 
-        with patch("hft.storage.questdb.Sender") as MockSender:
+        with patch("nanoedge.storage.questdb.Sender") as MockSender:
             mock_sender = MagicMock()
             MockSender.return_value = mock_sender
 
@@ -374,7 +374,7 @@ class TestSenderManagement:
         """Subsequent calls reuse existing sender."""
         client = QuestDBClient()
 
-        with patch("hft.storage.questdb.Sender") as MockSender:
+        with patch("nanoedge.storage.questdb.Sender") as MockSender:
             mock_sender = MagicMock()
             MockSender.return_value = mock_sender
 

@@ -76,7 +76,7 @@ class LatencyRollingWindow {
 }
 
 /**
- * WebSocket hook with RAF batching for HFT performance.
+ * WebSocket hook with RAF batching for NanoEdge performance.
  * Only updates state at 60fps to avoid excessive re-renders.
  */
 export function useWebSocket<T>(options: WebSocketOptions<T>): WebSocketState<T> {

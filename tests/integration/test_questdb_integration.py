@@ -13,8 +13,8 @@ import uuid
 
 import pytest
 
-from hft.core.types import OHLCV
-from hft.storage.questdb import QuestDBClient
+from nanoedge.core.types import OHLCV
+from nanoedge.storage.questdb import QuestDBClient
 
 
 def is_questdb_available() -> bool:

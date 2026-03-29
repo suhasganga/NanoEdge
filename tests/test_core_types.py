@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from hft.core.types import (
+from nanoedge.core.types import (
     DepthLevel,
     InstrumentType,
     MarketStats,

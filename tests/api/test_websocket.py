@@ -10,13 +10,13 @@ from fastapi.testclient import TestClient
 
 import json
 
-from hft.api.websocket import (
+from nanoedge.api.websocket import (
     MIN_VALID_TIMESTAMP_MS,
     QUEUE_TIMEOUT_SECONDS,
     _encode_stats,
     router,
 )
-from hft.core.types import (
+from nanoedge.core.types import (
     DepthLevel,
     MarketStats,
     OrderBookSnapshot,
@@ -104,7 +104,7 @@ class TestWsTicksEndpoint:
 
     def test_unknown_symbol_closes_connection(self, app, mock_app_state):
         """Connection closes with code 4000 for unknown symbol."""
-        with patch("hft.api.websocket.app_state", mock_app_state):
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
             client = TestClient(app)
             # Unknown symbol should close connection
             with client.websocket_connect("/ws/ticks/UNKNOWN") as websocket:
@@ -114,7 +114,7 @@ class TestWsTicksEndpoint:
 
     def test_connects_for_known_symbol(self, app, mock_app_state):
         """Connection accepted for known symbol."""
-        with patch("hft.api.websocket.app_state", mock_app_state):
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
             client = TestClient(app)
             # Connection should be accepted for known symbol
             with client.websocket_connect("/ws/ticks/BTCUSDT") as websocket:
@@ -123,7 +123,7 @@ class TestWsTicksEndpoint:
 
     def test_symbol_is_uppercased(self, app, mock_app_state):
         """Symbol is converted to uppercase."""
-        with patch("hft.api.websocket.app_state", mock_app_state):
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
             client = TestClient(app)
             # btcusdt should be converted to BTCUSDT and work
             with client.websocket_connect("/ws/ticks/btcusdt") as websocket:
@@ -135,7 +135,7 @@ class TestWsDepthEndpoint:
 
     def test_unknown_symbol_closes_connection(self, app, mock_app_state):
         """Connection closes for unknown symbol."""
-        with patch("hft.api.websocket.app_state", mock_app_state):
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
             client = TestClient(app)
             # Server accepts then closes for unknown symbol
             with client.websocket_connect("/ws/depth/UNKNOWN") as websocket:
@@ -143,7 +143,7 @@ class TestWsDepthEndpoint:
 
     def test_connects_for_known_symbol(self, app, mock_app_state):
         """Connection accepted for known symbol."""
-        with patch("hft.api.websocket.app_state", mock_app_state):
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
             client = TestClient(app)
             with client.websocket_connect("/ws/depth/BTCUSDT") as websocket:
                 assert websocket is not None
@@ -154,14 +154,14 @@ class TestWsTradesEndpoint:
 
     def test_unknown_symbol_closes_connection(self, app, mock_app_state):
         """Connection closes for unknown symbol."""
-        with patch("hft.api.websocket.app_state", mock_app_state):
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
             client = TestClient(app)
             with client.websocket_connect("/ws/trades/UNKNOWN") as websocket:
                 pass
 
     def test_connects_for_known_symbol(self, app, mock_app_state):
         """Connection accepted for known symbol."""
-        with patch("hft.api.websocket.app_state", mock_app_state):
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
             client = TestClient(app)
             with client.websocket_connect("/ws/trades/BTCUSDT") as websocket:
                 assert websocket is not None
@@ -172,14 +172,14 @@ class TestWsStatsEndpoint:
 
     def test_unknown_symbol_closes_connection(self, app, mock_app_state):
         """Connection closes for unknown symbol."""
-        with patch("hft.api.websocket.app_state", mock_app_state):
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
             client = TestClient(app)
             with client.websocket_connect("/ws/stats/UNKNOWN") as websocket:
                 pass
 
     def test_connects_for_known_symbol(self, app, mock_app_state):
         """Connection accepted for known symbol."""
-        with patch("hft.api.websocket.app_state", mock_app_state):
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
             client = TestClient(app)
             with client.websocket_connect("/ws/stats/BTCUSDT") as websocket:
                 assert websocket is not None
@@ -202,7 +202,7 @@ class TestWsStatsEndpoint:
             open_price=50000.0,
         )
 
-        with patch("hft.api.websocket.app_state", mock_app_state):
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
             client = TestClient(app)
             try:
                 with client.websocket_connect("/ws/stats/BTCUSDT") as websocket:
@@ -220,7 +220,7 @@ class TestWsCandlesEndpoint:
 
     def test_unknown_symbol_closes_connection(self, app, mock_app_state):
         """Connection closes for unknown symbol."""
-        with patch("hft.api.websocket.app_state", mock_app_state):
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
             client = TestClient(app)
             with client.websocket_connect("/ws/candles/UNKNOWN") as websocket:
                 pass
@@ -234,7 +234,7 @@ class TestWsCandlesEndpoint:
         mock_app_state.aggregators = {"BTCUSDT": mock_agg}
         mock_app_state.candle_subscribers = {"BTCUSDT": set()}
 
-        with patch("hft.api.websocket.app_state", mock_app_state):
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
             client = TestClient(app)
             # The endpoint will accept and then run indefinitely
             # We just verify it doesn't reject immediately
@@ -251,8 +251,8 @@ class TestWsSubscribeEndpoint:
 
     def test_accepts_connection(self, app, mock_app_state):
         """Connection is accepted."""
-        with patch("hft.api.websocket.app_state", mock_app_state):
-            with patch("hft.api.websocket.settings") as mock_settings:
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
+            with patch("nanoedge.api.websocket.settings") as mock_settings:
                 mock_settings.backfill_on_symbol_switch = False
                 client = TestClient(app)
                 try:
@@ -263,10 +263,10 @@ class TestWsSubscribeEndpoint:
 
     def test_subscribe_action_creates_subscription(self, app, mock_app_state):
         """Subscribe action registers queues."""
-        with patch("hft.api.websocket.app_state", mock_app_state):
-            with patch("hft.api.websocket.settings") as mock_settings:
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
+            with patch("nanoedge.api.websocket.settings") as mock_settings:
                 mock_settings.backfill_on_symbol_switch = False
-                with patch("hft.api.dependencies.ensure_symbol_infrastructure") as mock_ensure:
+                with patch("nanoedge.api.dependencies.ensure_symbol_infrastructure") as mock_ensure:
                     client = TestClient(app)
                     try:
                         with client.websocket_connect("/ws/subscribe") as websocket:
@@ -285,8 +285,8 @@ class TestWsSubscribeEndpoint:
 
     def test_unsubscribe_action(self, app, mock_app_state):
         """Unsubscribe action removes queues."""
-        with patch("hft.api.websocket.app_state", mock_app_state):
-            with patch("hft.api.websocket.settings") as mock_settings:
+        with patch("nanoedge.api.websocket.app_state", mock_app_state):
+            with patch("nanoedge.api.websocket.settings") as mock_settings:
                 mock_settings.backfill_on_symbol_switch = False
                 client = TestClient(app)
                 try:
@@ -314,9 +314,9 @@ class TestBackfillSymbolOnSwitch:
     @pytest.mark.asyncio
     async def test_skips_when_disabled(self):
         """Skips when backfill_on_symbol_switch is False."""
-        from hft.api.websocket import _backfill_symbol_on_switch
+        from nanoedge.api.websocket import _backfill_symbol_on_switch
 
-        with patch("hft.api.websocket.settings") as mock_settings:
+        with patch("nanoedge.api.websocket.settings") as mock_settings:
             mock_settings.backfill_on_symbol_switch = False
 
             # Should return immediately
@@ -326,11 +326,11 @@ class TestBackfillSymbolOnSwitch:
     @pytest.mark.asyncio
     async def test_skips_when_no_questdb(self):
         """Skips when QuestDB is not available."""
-        from hft.api.websocket import _backfill_symbol_on_switch
+        from nanoedge.api.websocket import _backfill_symbol_on_switch
 
-        with patch("hft.api.websocket.settings") as mock_settings:
+        with patch("nanoedge.api.websocket.settings") as mock_settings:
             mock_settings.backfill_on_symbol_switch = True
-            with patch("hft.api.websocket.app_state") as mock_state:
+            with patch("nanoedge.api.websocket.app_state") as mock_state:
                 mock_state.questdb = None
 
                 await _backfill_symbol_on_switch("BTCUSDT", "binance", "spot")
@@ -338,14 +338,14 @@ class TestBackfillSymbolOnSwitch:
     @pytest.mark.asyncio
     async def test_skips_small_gap(self):
         """Skips backfill when gap < 30 minutes."""
-        from hft.api.websocket import _backfill_symbol_on_switch
+        from nanoedge.api.websocket import _backfill_symbol_on_switch
 
         import time
 
-        with patch("hft.api.websocket.settings") as mock_settings:
+        with patch("nanoedge.api.websocket.settings") as mock_settings:
             mock_settings.backfill_on_symbol_switch = True
             mock_settings.symbol_switch_backfill_hours = 24
-            with patch("hft.api.websocket.app_state") as mock_state:
+            with patch("nanoedge.api.websocket.app_state") as mock_state:
                 mock_questdb = AsyncMock()
                 # Return timestamp from 10 minutes ago (small gap)
                 mock_questdb.get_latest_timestamp.return_value = int(time.time() * 1000) - (10 * 60 * 1000)
@@ -360,7 +360,7 @@ class TestBackfillSymbolOnSwitch:
     @pytest.mark.asyncio
     async def test_backfills_large_gap(self):
         """Backfills when gap > 30 minutes."""
-        from hft.api.websocket import _backfill_symbol_on_switch
+        from nanoedge.api.websocket import _backfill_symbol_on_switch
 
         import time
 
@@ -379,10 +379,10 @@ class TestBackfillSymbolOnSwitch:
         mock_state.binance_rest_client = MagicMock()
         mock_state.fyers_rest_client = None
 
-        with patch("hft.api.websocket.settings", mock_settings):
-            with patch("hft.api.websocket.app_state", mock_state):
+        with patch("nanoedge.api.websocket.settings", mock_settings):
+            with patch("nanoedge.api.websocket.app_state", mock_state):
                 # Patch at the source module where it's defined
-                with patch("hft.storage.gap_fill.fetch_missing_candles", new_callable=AsyncMock) as mock_fetch:
+                with patch("nanoedge.storage.gap_fill.fetch_missing_candles", new_callable=AsyncMock) as mock_fetch:
                     mock_fetch.return_value = [MagicMock()]
 
                     await _backfill_symbol_on_switch("BTCUSDT", "binance", "spot")
@@ -392,7 +392,7 @@ class TestBackfillSymbolOnSwitch:
     @pytest.mark.asyncio
     async def test_handles_no_data(self):
         """Backfills full range when no existing data."""
-        from hft.api.websocket import _backfill_symbol_on_switch
+        from nanoedge.api.websocket import _backfill_symbol_on_switch
 
         mock_settings = MagicMock()
         mock_settings.backfill_on_symbol_switch = True
@@ -407,10 +407,10 @@ class TestBackfillSymbolOnSwitch:
         mock_state.binance_rest_client = MagicMock()
         mock_state.fyers_rest_client = None
 
-        with patch("hft.api.websocket.settings", mock_settings):
-            with patch("hft.api.websocket.app_state", mock_state):
+        with patch("nanoedge.api.websocket.settings", mock_settings):
+            with patch("nanoedge.api.websocket.app_state", mock_state):
                 # Patch at the source module where it's defined
-                with patch("hft.storage.gap_fill.fetch_missing_candles", new_callable=AsyncMock) as mock_fetch:
+                with patch("nanoedge.storage.gap_fill.fetch_missing_candles", new_callable=AsyncMock) as mock_fetch:
                     mock_fetch.return_value = [MagicMock()] * 1440
 
                     await _backfill_symbol_on_switch("BTCUSDT", "binance", "spot")
@@ -420,11 +420,11 @@ class TestBackfillSymbolOnSwitch:
     @pytest.mark.asyncio
     async def test_handles_exception(self):
         """Handles exceptions gracefully."""
-        from hft.api.websocket import _backfill_symbol_on_switch
+        from nanoedge.api.websocket import _backfill_symbol_on_switch
 
-        with patch("hft.api.websocket.settings") as mock_settings:
+        with patch("nanoedge.api.websocket.settings") as mock_settings:
             mock_settings.backfill_on_symbol_switch = True
-            with patch("hft.api.websocket.app_state") as mock_state:
+            with patch("nanoedge.api.websocket.app_state") as mock_state:
                 mock_questdb = MagicMock()
                 mock_questdb.get_latest_timestamp = AsyncMock(side_effect=Exception("DB error"))
                 mock_state.questdb = mock_questdb

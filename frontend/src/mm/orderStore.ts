@@ -9,7 +9,6 @@ import type {
   SimulatedOrder,
   SimulatedPosition,
   OrderFill,
-  OrderSide,
 } from "./types";
 
 function createOrderStore() {

@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from hft.core.types import OHLCV
-from hft.storage.gap_fill import (
+from nanoedge.core.types import OHLCV
+from nanoedge.storage.gap_fill import (
     INTERVAL_MS,
     backfill_gaps,
     backfill_time_range,

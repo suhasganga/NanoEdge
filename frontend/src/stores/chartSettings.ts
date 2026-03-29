@@ -125,7 +125,7 @@ export const DEFAULT_SETTINGS: ChartSettings = {
   legendPosition: "top-left",
 };
 
-const STORAGE_KEY = "hft-chart-settings";
+const STORAGE_KEY = "nanoedge-chart-settings";
 
 // Load settings from localStorage
 function loadSettings(): ChartSettings {

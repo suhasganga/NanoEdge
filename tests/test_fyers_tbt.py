@@ -4,8 +4,8 @@ import time
 
 import pytest
 
-from hft.connectors.fyers.tbt_feed import SymbolDepthState
-from hft.connectors.fyers.types import (
+from nanoedge.connectors.fyers.tbt_feed import SymbolDepthState
+from nanoedge.connectors.fyers.types import (
     MAX_TBT_DEPTH_LEVELS,
     TBT_DEPTH50_DTYPE,
     TBT_LEVEL_DTYPE,
@@ -364,7 +364,7 @@ class TestTBTConnectionPool:
     @pytest.fixture
     def pool(self):
         """Create a connection pool for testing."""
-        from hft.connectors.fyers.tbt_pool import FyersTBTConnectionPool
+        from nanoedge.connectors.fyers.tbt_pool import FyersTBTConnectionPool
 
         return FyersTBTConnectionPool(
             app_id="TEST-100",
